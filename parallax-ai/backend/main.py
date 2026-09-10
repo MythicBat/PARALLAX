@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router_test import router as model_router_api
 from app.services.nebius_client import nebius_client
+from app.api.decisions import router as decisions_router
 
 
 app = FastAPI(
@@ -28,6 +29,7 @@ app.add_middleware(
 
 
 app.include_router(model_router_api)
+app.include_router(decisions_router)
 
 
 @app.get("/")
