@@ -9,6 +9,9 @@ from app.orchestration.orchestrator import (
 from app.schemas.decision import (
     DecisionCreateRequest,
 )
+from app.simulation.future_engine import (
+    future_engine,
+)
 
 
 router = APIRouter(
@@ -32,4 +35,28 @@ async def simulate_decision(
 ):
     return await parallax_orchestrator.simulate(
         payload
+    )
+
+
+@router.post("/futures")
+async def generate_futures(
+    payload: DecisionCreateRequest,
+):
+
+    architecture = (
+        await decision_architect.run(
+            payload
+        )
+    )
+
+    return await future_engine.generate(
+        {
+            "decision":
+                payload.model_dump(),
+
+            "architecture":
+                architecture[
+                    "architecture"
+                ],
+        }
     )
