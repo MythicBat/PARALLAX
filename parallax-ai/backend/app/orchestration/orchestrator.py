@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any
 
 from app.agents.decision_architect import (
@@ -8,14 +9,35 @@ from app.agents.red_team import red_team_agent
 from app.agents.synthesizer import (
     synthesize_decision,
 )
+
 from app.orchestration.parallel_runner import (
     run_agents_parallel,
 )
 from app.orchestration.team_builder import (
     build_agent_team,
 )
+
 from app.schemas.decision import (
     DecisionCreateRequest,
+)
+
+from app.simulation.assumption_engine import (
+    assumption_engine,
+)
+from app.simulation.blind_spot_engine import (
+    blind_spot_engine,
+)
+from app.simulation.counterfactual_engine import (
+    counterfactual_engine,
+)
+from app.simulation.future_engine import (
+    future_engine,
+)
+from app.simulation.information_value_engine import (
+    information_value_engine,
+)
+from app.simulation.stress_engine import (
+    stress_engine,
 )
 
 
@@ -27,7 +49,8 @@ class ParallaxOrchestrator:
     ) -> dict[str, Any]:
 
         #
-        # Stage 1 — Architect decision
+        # STAGE 1
+        # Decision Architecture
         #
 
         architecture_result = (
@@ -40,21 +63,21 @@ class ParallaxOrchestrator:
             "architecture"
         ]
 
-        #
-        # Stage 2 — Build specialist team
-        #
-
         team = build_agent_team(
             architecture["decision_type"]
         )
 
         base_context = {
-            "decision": decision.model_dump(),
-            "architecture": architecture,
+            "decision":
+                decision.model_dump(),
+
+            "architecture":
+                architecture,
         }
 
         #
-        # Stage 3 — Parallel specialist analysis
+        # STAGE 2
+        # Parallel specialist reasoning
         #
 
         specialist_results = (
@@ -65,7 +88,8 @@ class ParallaxOrchestrator:
         )
 
         #
-        # Stage 4 — Contrarian
+        # STAGE 3
+        # Contrarian
         #
 
         contrarian_results = (
@@ -73,6 +97,7 @@ class ParallaxOrchestrator:
                 agent_names=["contrarian"],
                 context={
                     **base_context,
+
                     "specialist_reports":
                         specialist_results,
                 },
@@ -80,46 +105,105 @@ class ParallaxOrchestrator:
         )
 
         #
-        # Stage 5 — Red team
+        # STAGE 4
+        # Red Team
         #
 
-        red_team_result = await red_team_agent.run(
-            {
-                **base_context,
-                "specialist_reports":
-                    specialist_results,
-                "contrarian":
-                    contrarian_results,
-            }
+        red_team_result = (
+            await red_team_agent.run(
+                {
+                    **base_context,
+
+                    "specialist_reports":
+                        specialist_results,
+
+                    "contrarian":
+                        contrarian_results,
+                }
+            )
         )
 
-        #
-        # Stage 6 — Independent AI jury
-        #
-
-        jury_context = {
+        reasoning_context = {
             **base_context,
+
             "specialist_reports":
                 specialist_results,
+
             "contrarian":
                 contrarian_results,
+
             "red_team":
                 red_team_result,
         }
 
-        jury_results = await convene_jury(
-            context=jury_context,
-            juror_count=5,
+        #
+        # STAGE 5
+        # Jury + Simulation Intelligence
+        #
+        # These jobs have no dependency on
+        # one another, so run concurrently.
+        #
+
+        (
+            jury_results,
+            futures,
+            assumption_ledger,
+            blind_spots,
+            stress_test,
+            information_value,
+        ) = await asyncio.gather(
+
+            convene_jury(
+                context=reasoning_context,
+                juror_count=5,
+            ),
+
+            future_engine.generate(
+                reasoning_context
+            ),
+
+            assumption_engine.build(
+                reasoning_context
+            ),
+
+            blind_spot_engine.analyze(
+                reasoning_context
+            ),
+
+            stress_engine.run(
+                reasoning_context
+            ),
+
+            information_value_engine.analyze(
+                reasoning_context
+            ),
         )
 
         #
-        # Stage 7 — Ultra synthesis
+        # STAGE 6
+        # Ultra synthesis
         #
 
         synthesis_context = {
-            **jury_context,
+            **reasoning_context,
+
             "jury":
                 jury_results,
+
+            "futures":
+                futures,
+
+            "assumption_ledger":
+                assumption_ledger,
+
+            "blind_spots":
+                blind_spots,
+
+            "stress_test":
+                stress_test,
+
+            "information_value":
+                information_value,
         }
 
         final = await synthesize_decision(
@@ -127,7 +211,22 @@ class ParallaxOrchestrator:
         )
 
         #
-        # Complete execution record
+        # STAGE 7
+        # Counterfactual analysis
+        #
+
+        counterfactual = (
+            await counterfactual_engine.analyze(
+                {
+                    **synthesis_context,
+                    "final":
+                        final,
+                }
+            )
+        )
+
+        #
+        # FINAL EXECUTION RECORD
         #
 
         return {
@@ -139,10 +238,17 @@ class ParallaxOrchestrator:
                 "contrarian",
                 "red_team",
                 "ai_jury",
+                "future_simulation",
+                "assumption_ledger",
+                "blind_spot_detection",
+                "stress_testing",
+                "information_value",
                 "ultra_synthesis",
+                "counterfactual_analysis",
             ],
 
-            "team": team,
+            "team":
+                team,
 
             "architecture":
                 architecture_result,
@@ -159,9 +265,29 @@ class ParallaxOrchestrator:
             "jury":
                 jury_results,
 
+            "futures":
+                futures,
+
+            "assumption_ledger":
+                assumption_ledger,
+
+            "blind_spots":
+                blind_spots,
+
+            "stress_test":
+                stress_test,
+
+            "information_value":
+                information_value,
+
             "final":
                 final,
+
+            "counterfactual":
+                counterfactual,
         }
 
 
-parallax_orchestrator = ParallaxOrchestrator()
+parallax_orchestrator = (
+    ParallaxOrchestrator()
+)
