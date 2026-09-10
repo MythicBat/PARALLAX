@@ -9,15 +9,16 @@ class Settings(BaseSettings):
     nebius_api_key: str
     nebius_base_url: str = "https://api.tokenfactory.nebius.com/v1/"
 
-    nemotron_nano_model: str = ""
-    nemotron_super_model: str = "nvidia/nemotron-3-super-120b-a12b"
-    nemotron_ultra_model: str = ""
-    nemotron_omni_model: str = ""
+    nemotron_lightning_model: str
+    nemotron_nano_model: str
+    nemotron_super_model: str
+    nemotron_ultra_model: str
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",
     )
 
 
