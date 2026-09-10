@@ -1,3 +1,5 @@
+import type { SimulationResponse } from "@/store/parallax-store";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export interface HealthResponse {
@@ -19,7 +21,7 @@ export async function getHealth(): Promise<HealthResponse> {
     return response.json();
 }
 
-export async function simulateDecision(payload: unknown) {
+export async function simulateDecision(payload: unknown): Promise<SimulationResponse> {
     const response = await fetch(`${API_BASE_URL}/decisions/simulate`, {
         method: "POST",
         headers: {
