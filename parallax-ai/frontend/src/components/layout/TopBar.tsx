@@ -9,9 +9,21 @@ import { useEffect, useState } from "react";
 
 import { getHealth } from "@/lib/api";
 
+import { usePathname } from "next/navigation";
+
 export function TopBar() {
   const [online, setOnline] =
     useState<boolean | null>(null);
+  
+  const pathname = usePathname();
+
+  const page = pathname.startsWith("/futures") ? {
+    title: "Future Canvas",
+    subtitle: "Interactive decision simulation",
+  } : {
+    title: "Command Center",
+    subtitle: "Decision intelligence workspace",
+  };
 
   useEffect(() => {
     getHealth()
@@ -24,11 +36,11 @@ export function TopBar() {
       <div className="flex items-center gap-4">
         <div>
           <div className="text-xs font-medium text-white/80">
-            Command Center
+            {page.title}
           </div>
 
           <div className="mt-1 text-[10px] text-white/30">
-            Decision intelligence workspace
+            {page.subtitle}
           </div>
         </div>
       </div>
