@@ -9,7 +9,7 @@ import {
   Zap,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 import { DecisionComposer } from "@/components/command/DecisionComposer";
 import { LaunchOverlay } from "@/components/command/LaunchOverlay";
