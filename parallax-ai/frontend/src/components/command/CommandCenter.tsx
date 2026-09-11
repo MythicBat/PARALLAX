@@ -9,6 +9,7 @@ import {
   Zap,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/router";
 
 import { DecisionComposer } from "@/components/command/DecisionComposer";
 import { LaunchOverlay } from "@/components/command/LaunchOverlay";
@@ -43,6 +44,8 @@ export function CommandCenter() {
     useParallaxStore(
       (state) => state.simulation,
     );
+  
+  const router = useRouter();
 
   return (
     <>
@@ -136,9 +139,11 @@ export function CommandCenter() {
               </div>
             </div>
 
-            <button className="flex items-center gap-2 text-[11px] text-[var(--accent)]">
-              Open Future Canvas
-              <ArrowRight size={13} />
+            <button
+              onClick={() => router.push("/futures")} 
+              className="flex items-center gap-2 text-[11px] text-[var(--accent)]">
+                Open Future Canvas
+                <ArrowRight size={13} />
             </button>
           </motion.div>
         )}
