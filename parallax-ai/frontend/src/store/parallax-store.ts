@@ -1,5 +1,11 @@
 import { create } from "zustand";
 
+import type {
+  FutureScenario,
+  FutureSimulationPayload,
+} from "@/types/simulation";
+
+
 export interface SimulationResponse {
   status: string;
   pipeline: string[];
@@ -10,7 +16,9 @@ export interface SimulationResponse {
   contrarian: unknown[];
   red_team: unknown;
   jury: unknown[];
-  futures: unknown;
+
+  futures: FutureSimulationPayload;
+
   assumption_ledger: unknown;
   blind_spots: unknown;
   stress_test: unknown;
@@ -19,12 +27,14 @@ export interface SimulationResponse {
   counterfactual: unknown;
 }
 
+
 interface ParallaxState {
   simulation: SimulationResponse | null;
 
   simulationRunning: boolean;
-
   simulationError: string | null;
+
+  selectedFuture: FutureScenario | null;
 
   setSimulation: (
     simulation: SimulationResponse | null,
@@ -37,7 +47,12 @@ interface ParallaxState {
   setSimulationError: (
     error: string | null,
   ) => void;
+
+  setSelectedFuture: (
+    future: FutureScenario | null,
+  ) => void;
 }
+
 
 export const useParallaxStore =
   create<ParallaxState>((set) => ({
@@ -46,6 +61,8 @@ export const useParallaxStore =
     simulationRunning: false,
 
     simulationError: null,
+
+    selectedFuture: null,
 
     setSimulation: (simulation) =>
       set({
@@ -64,5 +81,12 @@ export const useParallaxStore =
     ) =>
       set({
         simulationError,
+      }),
+
+    setSelectedFuture: (
+      selectedFuture,
+    ) =>
+      set({
+        selectedFuture,
       }),
   }));
