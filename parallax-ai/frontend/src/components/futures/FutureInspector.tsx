@@ -13,6 +13,8 @@ import { useParallaxStore } from "@/store/parallax-store";
 
 
 export function FutureInspector() {
+  const setActiveWorkspacePanel = useParallaxStore((state) => state.setActiveWorkspacePanel);
+
   const selectedFuture =
     useParallaxStore(
       (state) =>
@@ -170,9 +172,11 @@ export function FutureInspector() {
         </div>
 
         <div className="mt-8 grid grid-cols-2 gap-2">
-          <button className="flex h-10 items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] text-[10px] text-white/45 transition hover:bg-white/[0.05] hover:text-white">
-            <RotateCcw size={13} />
-            Stress this future
+          <button
+            onClick={() => setActiveWorkspacePanel("stress")} 
+            className="flex h-10 items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] text-[10px] text-white/45 transition hover:bg-white/[0.05] hover:text-white">
+              <RotateCcw size={13} />
+              Stress this future
           </button>
 
           <button className="flex h-10 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] text-[10px] font-medium text-black transition hover:brightness-110">
