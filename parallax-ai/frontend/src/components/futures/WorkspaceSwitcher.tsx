@@ -42,7 +42,15 @@ const items: {
 export function WorkspaceSwitcher() {
     const active = useParallaxStore((state) => state.activeWorkspacePanel);
 
+    const simulation = useParallaxStore((state) => state.simulation);
+
     const setActive = useParallaxStore((state) => state.setActiveWorkspacePanel);
+
+    const counts = {
+        assumptions: simulation?.assumption_ledger.ledger.items.length ?? 0,
+        blindSpots: simulation?.blind_spots.report.blind_spots.length ?? 0,
+        stress: simulation?.stress_test.stress_test.scenarios.length ?? 0,
+    };
 
     return (
         <div className="pointer-events-auto absolute left-1/2 top-4 z-30 -translate-x-1/2">
@@ -64,6 +72,18 @@ export function WorkspaceSwitcher() {
                             <Icon size={12} />
 
                             {item.label}
+                            
+                            {item.id === "assumptions" && (
+                                <span className="text-[8px] text-white/20">{counts.assumptions}</span>
+                            )}
+
+                            {item.id === "blind-spots" && (
+                                <span className="text-[8px] text-white/20">{counts.blindSpots}</span>
+                            )}
+
+                            {item.id === "stress" && (
+                                <span className="text-[8px] text-white/20">{counts.stress}</span>
+                            )}
                         </button>
                     );
                 })}
