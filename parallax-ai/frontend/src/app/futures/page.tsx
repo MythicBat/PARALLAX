@@ -7,7 +7,7 @@ import {
 
 import { useRouter } from "next/navigation";
 
-import { FutureCanvas } from "@/components/futures/FutureCanvas";
+import { FuturesWorkspace } from "@/components/futures/FuturesWorkspace";
 import { AppShell } from "@/components/layout/AppShell";
 
 export default function FuturesPage() {
@@ -31,7 +31,7 @@ export default function FuturesPage() {
                     </button>
                 </div>
 
-                <FutureCanvas />
+                <FuturesWorkspace />
             </div>
         </AppShell>
     );
