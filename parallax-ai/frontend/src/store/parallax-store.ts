@@ -1,10 +1,18 @@
 import { create } from "zustand";
 
 import type {
+  AssumptionLedgerPayload,
+  BlindSpotPayload,
   FutureScenario,
   FutureSimulationPayload,
+  StressTestPayload,
 } from "@/types/simulation";
 
+export type WorkspacePanel = 
+  | "canvas"
+  | "assumptions"
+  | "blind-spots"
+  | "stress";
 
 export interface SimulationResponse {
   status: string;
@@ -19,9 +27,9 @@ export interface SimulationResponse {
 
   futures: FutureSimulationPayload;
 
-  assumption_ledger: unknown;
-  blind_spots: unknown;
-  stress_test: unknown;
+  assumption_ledger: AssumptionLedgerPayload;
+  blind_spots: BlindSpotPayload;
+  stress_test: StressTestPayload;
   information_value: unknown;
   final: unknown;
   counterfactual: unknown;
@@ -35,6 +43,10 @@ interface ParallaxState {
   simulationError: string | null;
 
   selectedFuture: FutureScenario | null;
+
+  activeWorkspacePanel: WorkspacePanel;
+
+  setActiveWorkspacePanel: (panel: WorkspacePanel) => void; 
 
   setSimulation: (
     simulation: SimulationResponse | null,
@@ -63,6 +75,10 @@ export const useParallaxStore =
     simulationError: null,
 
     selectedFuture: null,
+
+    activeWorkspacePanel: "canvas",
+
+    setActiveWorkspacePanel: (activeWorkspacePanel) => set({activeWorkspacePanel}),
 
     setSimulation: (simulation) =>
       set({
