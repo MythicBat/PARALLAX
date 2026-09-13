@@ -55,3 +55,128 @@ export interface FutureSimulationPayload {
         };
     };
 }
+
+/*Assumption, blind spots, and stress tests types*/
+export type EvidenceCategory =
+  | "known"
+  | "inferred"
+  | "assumed"
+  | "unknown";
+
+export interface AssumptionItem {
+  id: string;
+  statement: string;
+  category: EvidenceCategory;
+  source: string | null;
+  confidence:
+    | "low"
+    | "medium"
+    | "high";
+  impact:
+    | "low"
+    | "medium"
+    | "high"
+    | "critical";
+  affected_options: string[];
+  validation_question: string | null;
+}
+
+export interface AssumptionLedgerPayload {
+  ledger: {
+    items: AssumptionItem[];
+  };
+
+  inference: {
+    tier: string;
+    model: string;
+    latency_ms: number;
+
+    usage: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+    };
+  };
+}
+
+export interface BlindSpot {
+  id: string;
+  title: string;
+  explanation: string;
+  severity:
+    | "low"
+    | "medium"
+    | "high"
+    | "critical";
+  affected_options: string[];
+  why_it_matters: string;
+  validation_action: string;
+}
+
+export interface BlindSpotPayload {
+  report: {
+    blind_spots: BlindSpot[];
+  };
+
+  inference: {
+    tier: string;
+    model: string;
+    latency_ms: number;
+
+    usage: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+    };
+  };
+}
+
+export interface StressScenario {
+  id: string;
+  name: string;
+  description: string;
+  severity:
+    | "moderate"
+    | "severe"
+    | "extreme";
+}
+
+export interface StressImpact {
+  option: string;
+  scenario_id: string;
+
+  impact:
+    | "benefits"
+    | "minor_damage"
+    | "moderate_damage"
+    | "major_damage"
+    | "failure"
+    | "uncertain";
+
+  explanation: string;
+
+  survives: boolean;
+}
+
+export interface StressTestPayload {
+  stress_test: {
+    scenarios: StressScenario[];
+    impacts: StressImpact[];
+    most_resilient_option:
+      | string
+      | null;
+    explanation: string;
+  };
+
+  inference: {
+    tier: string;
+    model: string;
+    latency_ms: number;
+
+    usage: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+    };
+  };
+}
