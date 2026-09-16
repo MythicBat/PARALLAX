@@ -2,9 +2,13 @@
 
 import { FutureCanvas } from "./FutureCanvas";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
+
 import { AssumptionLedger } from "../intelligence/AssumptionLedger";
 import { BlindSpotRadar } from "../intelligence/BlindSpotRadar";
 import { StressLab } from "../intelligence/StressLab";
+import { AIJury } from "../intelligence/AIJury";
+import { CounterfactualLab } from "../intelligence/CounterfactualLab";
+import { InformationValue } from "../intelligence/InformationValue";
 
 import { useParallaxStore } from "@/store/parallax-store";
 
@@ -29,6 +33,18 @@ export function FuturesWorkspace() {
 
             {active === "stress" && (
                 <StressLab />
+            )}
+
+            {active === "counterfactual" && (
+                <CounterfactualLab />
+            )}
+
+            {active === "information" && (
+                <InformationValue />
+            )}
+
+            {active === "jury" && (
+                <AIJury />
             )}
         </div>
     );
