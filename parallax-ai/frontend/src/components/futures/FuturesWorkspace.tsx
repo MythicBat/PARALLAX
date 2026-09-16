@@ -1,5 +1,10 @@
 "use client";
 
+import {
+    AnimatePresence,
+    motion
+} from "framer-motion";
+
 import { FutureCanvas } from "./FutureCanvas";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 
@@ -19,6 +24,15 @@ export function FuturesWorkspace() {
         <div className="relative h-[calc(100vh-72px)]">
             <WorkspaceSwitcher />
 
+            <AnimatePresence mode="wait">
+            <motion.div
+                key={active}
+                initial={{opacity: 0, y: 5}}
+                animate={{opacity: 1, y: 0}}
+                exit={{opacity: 0, y: -4}}
+                transition={{duration: 0.18}}
+                className="h-full"
+            >
             {active === "canvas" && (
                 <FutureCanvas />
             )}
@@ -46,6 +60,8 @@ export function FuturesWorkspace() {
             {active === "jury" && (
                 <AIJury />
             )}
+            </motion.div>
+            </AnimatePresence>
         </div>
     );
 }
