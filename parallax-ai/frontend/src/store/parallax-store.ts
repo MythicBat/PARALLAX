@@ -3,8 +3,11 @@ import { create } from "zustand";
 import type {
   AssumptionLedgerPayload,
   BlindSpotPayload,
+  CounterfactualPayload,
   FutureScenario,
   FutureSimulationPayload,
+  InformationValuePayload,
+  JuryPayload,
   StressTestPayload,
 } from "@/types/simulation";
 
@@ -12,7 +15,10 @@ export type WorkspacePanel =
   | "canvas"
   | "assumptions"
   | "blind-spots"
-  | "stress";
+  | "stress"
+  | "counterfactual"
+  | "information"
+  | "jury";
 
 export interface SimulationResponse {
   status: string;
@@ -23,16 +29,16 @@ export interface SimulationResponse {
   specialists: unknown[];
   contrarian: unknown[];
   red_team: unknown;
-  jury: unknown[];
+  jury: JuryPayload;
 
   futures: FutureSimulationPayload;
 
   assumption_ledger: AssumptionLedgerPayload;
   blind_spots: BlindSpotPayload;
   stress_test: StressTestPayload;
-  information_value: unknown;
+  information_value: InformationValuePayload;
   final: unknown;
-  counterfactual: unknown;
+  counterfactual: CounterfactualPayload;
 }
 
 
