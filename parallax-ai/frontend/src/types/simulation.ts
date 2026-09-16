@@ -180,3 +180,125 @@ export interface StressTestPayload {
     };
   };
 }
+
+/** Counter-factual, Information, AI Jury */
+export interface CounterfactualCondition {
+  id: string;
+  option: string;
+  condition: string;
+  explanation: string;
+
+  likelihood:
+    | "low"
+    | "medium"
+    | "high";
+
+  impact:
+    | "moderate"
+    | "high"
+    | "decisive";
+
+  observable_signal: string;
+}
+
+export interface CounterfactualPayload {
+  counterfactual: {
+    conditions: CounterfactualCondition[];
+    summary: string;
+  };
+
+  inference: {
+    tier: string;
+    model: string;
+    latency_ms: number;
+
+    usage: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+    };
+  };
+}
+
+
+export interface InformationItem {
+  id: string;
+  question: string;
+  why_it_matters: string;
+
+  information_value:
+    | "low"
+    | "medium"
+    | "high"
+    | "critical";
+
+  effort:
+    | "low"
+    | "medium"
+    | "high";
+
+  affected_options: string[];
+  suggested_action: string;
+}
+
+export interface InformationValuePayload {
+  analysis: {
+    items: InformationItem[];
+    highest_value_question:
+      | string
+      | null;
+    summary: string;
+  };
+
+  inference: {
+    tier: string;
+    model: string;
+    latency_ms: number;
+
+    usage: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+    };
+  };
+}
+
+
+export interface JuryVote {
+  agent: string;
+  preferred_option: string;
+  confidence: number;
+  rationale: string;
+  strongest_argument: string;
+  biggest_concern: string;
+}
+
+export interface JuryPayload {
+  jury: {
+    votes: JuryVote[];
+
+    consensus_option:
+      | string
+      | null;
+
+    agreement_score: number;
+
+    disagreement_summary: string;
+
+    minority_report:
+      | string
+      | null;
+  };
+
+  inference?: {
+    tier: string;
+    model: string;
+    latency_ms: number;
+
+    usage?: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+    };
+  };
+}
