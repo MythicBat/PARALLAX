@@ -22,6 +22,7 @@ import { DecisionNode } from "@/components/futures/DecisionNode";
 import { FutureInspector } from "@/components/futures/FutureInspector";
 import { FutureNode } from "@/components/futures/FutureNode";
 import { OptionNode } from "@/components/futures/OptionNode";
+import { IntelligenceRail } from "./IntelligenceRail";
 
 import { buildFutureGraph } from "@/lib/future-graph";
 
@@ -229,6 +230,8 @@ export function FutureCanvas() {
       </ReactFlow>
 
       <CanvasHeader />
+
+      <IntelligenceRail />
 
       <FutureInspector />
     </div>
