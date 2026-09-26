@@ -25,6 +25,7 @@ Your goal is to improve reasoning quality.
 """
 
     complexity = 0.82
+    stage = "red-team"
 
     def build_prompt(
         self,

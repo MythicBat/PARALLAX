@@ -8,6 +8,7 @@ class BaseAgent(ABC):
     role: str = "General Reasoning Agent"
     task_type: str = "reasoning"
     complexity: float = 0.65
+    stage: str = "specialist-analysis"
 
     @property
     def system_prompt(self) -> str:
@@ -41,7 +42,7 @@ Rules:
             max_tokens=1800,
             agent=self.name,
             role=self.role,
-            stage="specialist-analysis",
+            stage=self.stage,
         )
 
         return {
