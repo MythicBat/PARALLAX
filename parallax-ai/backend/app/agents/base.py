@@ -39,6 +39,9 @@ Rules:
             complexity=self.complexity,
             temperature=0.25,
             max_tokens=1800,
+            agent=self.name,
+            role=self.role,
+            stage="specialist-analysis",
         )
 
         return {
