@@ -95,6 +95,9 @@ Remember:
             complexity=complexity,
             temperature=0.2,
             max_tokens=2400,
+            agent="Decision Architect",
+            role="decision decomposition and architecture",
+            stage="decision-architecture"
         )
 
         raw = extract_json(result["content"])
