@@ -4,6 +4,7 @@ from typing import Any
 
 from app.core.config import settings
 from app.services.nebius_client import nebius_client
+from app.observability import record_trace
 
 
 class ModelTier(str, Enum):
@@ -88,6 +89,11 @@ class ModelRouter:
         complexity: float = 0.5,
         temperature: float = 0.3,
         max_tokens: int = 1800,
+        agent: str = "PARALLAX",
+        role: str = "general reasoning",
+        escalated: bool = False,
+        stage: str = "reasoning",
+        escalation_reason: str | None = None,
     ) -> dict[str, Any]:
 
         tier = self.choose_model(
@@ -99,21 +105,39 @@ class ModelRouter:
 
         started = perf_counter()
 
-        response = await self.client.chat.completions.create(
-            model=model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": system_prompt,
-                },
-                {
-                    "role": "user",
-                    "content": prompt,
-                },
-            ],
-            temperature=temperature,
-            max_tokens=max_tokens,
-        )
+        try:
+            response = await self.client.chat.completions.create(
+                model=model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": system_prompt,
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    },
+                ],
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+        except Exception:
+            latency_ms = (perf_counter() - started) * 1000
+
+            record_trace(
+                agent=agent,
+                role=role,
+                stage=stage,
+                tier=tier.value,
+                model=model,
+                latency_ms=round(latency_ms),
+                usage={},
+                status="failed",
+                escalated=escalated,
+                escalation_reason=escalation_reason,
+            )
+
+            raise
 
         latency_ms = (perf_counter() - started) * 1000
 
@@ -137,6 +161,23 @@ class ModelRouter:
             usage.total_tokens
             if usage and usage.total_tokens
             else prompt_tokens + completion_tokens
+        )
+
+        record_trace(
+            agent=agent,
+            role=role,
+            stage=stage,
+            tier=tier.value,
+            model=model,
+            latency_ms=round(latency_ms),
+            usage={
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": total_tokens,
+            },
+            status="complete",
+            escalated=escalated,
+            escalation_reason=escalation_reason
         )
 
         stats = self.telemetry[tier.value]
