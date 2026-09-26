@@ -12,6 +12,10 @@ from app.schemas.decision import (
 from app.simulation.future_engine import (
     future_engine,
 )
+from app.observability import (
+    begin_trace_session,
+    build_observatory_payload,
+)
 
 
 router = APIRouter(
@@ -33,9 +37,17 @@ async def architect_decision(
 async def simulate_decision(
     payload: DecisionCreateRequest,
 ):
-    return await parallax_orchestrator.simulate(
+    begin_trace_session()
+
+    result = await parallax_orchestrator.simulate(
         payload
     )
+
+    result["observatory"] = (
+        build_observatory_payload()
+    )
+
+    return result
 
 
 @router.post("/futures")
