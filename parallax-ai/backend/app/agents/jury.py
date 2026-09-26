@@ -53,6 +53,9 @@ Evaluate this decision independently.
         complexity=0.74,
         temperature=0.35,
         max_tokens=900,
+        agent=f"Juror {number}",
+        role="independent decision juror",
+        stage="ai-jury"
     )
 
     return {
