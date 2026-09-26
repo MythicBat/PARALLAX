@@ -79,6 +79,9 @@ class FutureEngine:
             complexity=0.82,
             temperature=0.35,
             max_tokens=5000,
+            agent="Future Simulator",
+            role="scenario simulation",
+            stage="future-simulation"
         )
 
         parsed = extract_json(result["content"])

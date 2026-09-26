@@ -60,6 +60,9 @@ class BlindSpotEngine:
             complexity=0.78,
             temperature=0.3,
             max_tokens=2200,
+            agent="Blind Spot Analyst",
+            role="hidden-risk discovery",
+            stage="blind-spot-detection"
         )
 
         parsed = extract_json(

@@ -75,6 +75,9 @@ class StressEngine:
             complexity=0.83,
             temperature=0.3,
             max_tokens=3800,
+            agent="Stress Tester",
+            role="adverse scenario testing",
+            stage="stress-testing",
         )
 
         parsed = extract_json(result["content"])

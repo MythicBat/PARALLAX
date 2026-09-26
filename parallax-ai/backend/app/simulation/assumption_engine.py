@@ -73,6 +73,9 @@ class AssumptionEngine:
             complexity=0.58,
             temperature=0.1,
             max_tokens=3000,
+            agent="Assumption Auditor",
+            role="evidence and assumption audit",
+            stage="assumption-audit"
         )
 
         parsed = extract_json(

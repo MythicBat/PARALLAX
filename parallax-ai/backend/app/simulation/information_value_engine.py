@@ -65,6 +65,9 @@ class InformationValueEngine:
             complexity=0.72,
             temperature=0.2,
             max_tokens=2200,
+            agent="Information Strategist",
+            role="value-of-information analysis",
+            stage="information-value"
         )
 
         parsed = extract_json(

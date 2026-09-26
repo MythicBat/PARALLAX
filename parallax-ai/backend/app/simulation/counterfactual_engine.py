@@ -72,6 +72,9 @@ class CounterfactualEngine:
             complexity=0.9,
             temperature=0.2,
             max_tokens=2200,
+            agent="Counterfactual Analyst",
+            role="decision reversal analysis",
+            stage="counterfactual-analysis",
         )
 
         parsed = extract_json(

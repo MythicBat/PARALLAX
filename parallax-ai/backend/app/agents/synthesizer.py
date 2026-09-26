@@ -65,6 +65,9 @@ async def synthesize_decision(
         complexity=0.96,
         temperature=0.15,
         max_tokens=2600,
+        agent="Chief Synthesizer",
+        role="final decision synthesis",
+        stage="final-synthesis"
     )
 
     return {
