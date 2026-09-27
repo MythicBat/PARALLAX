@@ -26,6 +26,9 @@ export function TopBar() {
   } : pathname.startsWith("/futures") ? {
     title: "Decision Workspace",
     subtitle: "Interactive decision simulation",
+  } : pathname.startsWith("/history") ? {
+    title: "Decision History",
+    subtitle: "Saved simulations and decisions replay",
   } : {
     title: "Command Center",
     subtitle: "Decision intelligence workspace",
