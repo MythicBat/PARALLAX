@@ -215,6 +215,12 @@ export const useHistoryStore =
 
           const question =
             getQuestion(simulation);
+          
+          const signature = JSON.stringify({
+            question,
+            options: getOptionNames(simulation),
+            pipeline: simulation.pipeline,
+          });
 
           const item:
             DecisionHistoryItem = {
@@ -247,12 +253,30 @@ export const useHistoryStore =
               simulation,
             };
 
-          set((state) => ({
-            items: [
-              item,
-              ...state.items,
-            ],
-          }));
+          set((state) => {
+            const newest = state.items[0];
+
+            if (newest) {
+              const newestSignature = JSON.stringify({
+                question: newest.question,
+                options: newest.optionNames,
+                pipeline: newest.simulation.pipeline,
+              });
+
+              const age = Date.now() - new Date(newest.createdAt).getTime();
+
+              if (signature === newestSignature && age < 10_000) {
+                return state;
+              }
+            }
+
+            return {
+              items: [
+                item,
+                ...state.items,
+              ],
+            };
+          });
 
           return item;
         },
