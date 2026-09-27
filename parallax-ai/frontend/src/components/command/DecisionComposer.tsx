@@ -12,6 +12,7 @@ import { useState } from "react";
 
 import { simulateDecision } from "@/lib/api";
 import { useParallaxStore } from "@/store/parallax-store";
+import { useHistoryStore } from "@/store/history-store";
 import type {
   DecisionOption,
   DecisionRequest,
@@ -59,6 +60,8 @@ export function DecisionComposer() {
       (state) =>
         state.setSimulationError,
     );
+  
+  const saveSimulation = useHistoryStore((state) => state.saveSimulation);
 
   function updateOption(
     index: number,
@@ -142,6 +145,7 @@ export function DecisionComposer() {
         await simulateDecision(payload);
 
       setSimulation(result);
+      saveSimulation(result);
     } catch (error) {
       setError(
         error instanceof Error
