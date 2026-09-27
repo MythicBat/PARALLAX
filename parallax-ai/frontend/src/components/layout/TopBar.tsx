@@ -17,8 +17,14 @@ export function TopBar() {
   
   const pathname = usePathname();
 
-  const page = pathname.startsWith("/futures") ? {
-    title: "Future Canvas",
+  const page = pathname.startsWith("/agents") ? {
+    title: "Agent Observatory",
+    subtitle: "Multi-agent execution trace",
+  } : pathname.startsWith("/models") ? {
+    title: "Model Observatory",
+    subtitle: "NVIDIA Nemotron inference architecture",
+  } : pathname.startsWith("/futures") ? {
+    title: "Decision Workspace",
     subtitle: "Interactive decision simulation",
   } : {
     title: "Command Center",
