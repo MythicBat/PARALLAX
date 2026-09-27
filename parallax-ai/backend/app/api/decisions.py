@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from time import perf_counter
 
 from app.agents.decision_architect import (
     decision_architect,
@@ -39,13 +40,17 @@ async def simulate_decision(
 ):
     begin_trace_session()
 
-    result = await parallax_orchestrator.simulate(
-        payload
-    )
+    started = perf_counter()
 
-    result["observatory"] = (
-        build_observatory_payload()
-    )
+    result = await parallax_orchestrator.simulate(payload)
+
+    duration_ms = (perf_counter() - started) * 1000
+
+    observatory = (build_observatory_payload())
+
+    observatory["summary"]["simulation_duration_ms"] = round(duration_ms, 2)
+
+    result["observatory"] = (observatory)
 
     return result
 
