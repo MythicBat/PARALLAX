@@ -8,7 +8,7 @@ export interface DecisionHistoryItem {
     updatedAt: string;
     question: string;
     optionNames: string[];
-    preferredOptions: string | null;
+    preferredOption: string | null;
     confidence: string | number | null;
     simulation: SimulationResponse;
 }
