@@ -1,5 +1,5 @@
 export type ModelTier = 
-    | "lighting"
+    | "lightning"
     | "super"
     | "nano"
     | "ultra"
