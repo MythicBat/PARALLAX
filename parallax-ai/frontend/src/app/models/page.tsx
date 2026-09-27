@@ -78,10 +78,11 @@ export default function ModelsPage() {
       null,
     );
 
-  const traces =
-    simulation?.observatory
-      ?.traces ?? [];
-
+  const traces = useMemo(
+    () =>
+      simulation?.observatory?.traces ?? [],
+    [simulation?.observatory?.traces],
+  );
 
   const modelsUsed =
     useMemo(
@@ -105,10 +106,13 @@ export default function ModelsPage() {
   }
 
 
-  const summary =
-    simulation.observatory
-      .summary;
+  const summary = simulation.observatory.summary;
 
+  const wallTime = summary.simulation_duration_ms ?? 0;
+
+  const cumulativeLatency = summary.total_latency_ms;
+
+  const inferenceConcurrency = wallTime > 0 ? cumulativeLatency / wallTime : 0;
 
   return (
     <AppShell>
@@ -156,6 +160,93 @@ export default function ModelsPage() {
               {summary.total_tokens.toLocaleString()} tokens
             </Pill>
 
+            {wallTime > 0 && (
+              <>
+                <Pill>
+                  {(wallTime / 1000).toFixed(1)}s wall time
+                </Pill>
+
+                <Pill>
+                  {inferenceConcurrency.toFixed(1)}x inference concurrency
+                </Pill>
+              </>
+            )}
+
+          </div>
+
+          <div className="mt-8 rounded-[18px] border border-white/[0.065] bg-white/[0.018] p-5">
+            <div className="flex items-center justify-between">
+              
+              <div>
+                <div className="text-[9px] uppercase tracking-[0.15em] text-white/22">
+                  Routing distribution
+                </div>
+
+                <div className="mt-1 text-[8px] text-white/15">
+                  Calls handled by each reasoning tier
+                </div>
+              </div>
+
+              <div className="text-[8px] text-white/18">
+                {summary.total_calls} total
+              </div>
+            </div>
+
+            <div className="mt-5 flex h-2 overflow-hidden rounded-full bg-white/[0.04]">
+              {[
+                {
+                  value: summary.lightning_calls,
+                  opacity: "bg-white/20",
+                },
+                {
+                  value: summary.nano_calls,
+                  opacity: "bg-white/35",
+                },
+                {
+                  value: summary.super_calls,
+                  opacity: "bg-white/60",
+                },
+                {
+                  value: summary.ultra_calls,
+                  opacity: "bg-[var(--accent)]",
+                },
+              ].map((segment, index) => {
+                const width = summary.total_calls > 0 ? (
+                  segment.value / summary.total_calls
+                ) * 100 : 0;
+
+                return (
+                  <div
+                    key={index}
+                    className={segment.opacity}
+                    style={{width: `${width}%`}}
+                  />
+                );
+              },
+              )}
+            </div>
+
+            <div className="mt-4 grid grid-cols-4 gap-3">
+              <Legend
+                label="Lightning"
+                value={summary.lightning_calls}
+              />
+
+              <Legend
+                label="Nano"
+                value={summary.nano_calls}
+              />
+
+              <Legend
+                label="Super"
+                value={summary.super_calls}
+              />
+
+              <Legend
+                label="Ultra"
+                value={summary.ultra_calls}
+              />
+            </div>
           </div>
 
 
@@ -481,6 +572,26 @@ function EmptyState() {
 
       </div>
 
+    </div>
+  );
+}
+
+function Legend({
+  label,
+  value,
+} : {
+  label: string;
+  value: number;
+}) {
+  return (
+    <div>
+      <div className="text-[8px] text-white/18">
+        {label}
+      </div>
+
+      <div className="mt-1 text-[11px] text-white/45">
+        {value}
+      </div>
     </div>
   );
 }

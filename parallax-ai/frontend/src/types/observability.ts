@@ -38,7 +38,7 @@ export interface ObservatorySummary {
     total_tokens: number;
     total_latency_ms: number;
 
-    lighting_calls: number;
+    lightning_calls: number;
     nano_calls: number;
     super_calls: number;
     ultra_calls: number;
