@@ -11,12 +11,21 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import type { LucideIcon } from "lucide-react";
+
 import { Logo } from "@/components/shared/Logo";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useParallaxStore } from "@/store/parallax-store";
+import { useParallaxStore, WorkspacePanel } from "@/store/parallax-store";
 
-const mainItems = [
+type SidebarItem = {
+  icon: LucideIcon;
+  label: string;
+  href: string;
+  panel?: WorkspacePanel;
+};
+
+const mainItems: SidebarItem[] = [
   {
     icon: Sparkles,
     label: "Command",
@@ -75,8 +84,8 @@ export function Sidebar() {
               key={item.label}
               title={item.label}
               onClick={() => {
-                if (item.panel === "stress") {
-                  setActiveWorkspacePanel("stress");
+                if (item.panel) {
+                  setActiveWorkspacePanel(item.panel);
                 }
 
                 router.push(item.href);
