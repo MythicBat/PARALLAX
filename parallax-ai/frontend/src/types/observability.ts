@@ -44,6 +44,8 @@ export interface ObservatorySummary {
     ultra_calls: number;
 
     escalation_count: number;
+
+    simulation_duration_ms?: number;
 }
 
 export interface ObservatoryPayload {

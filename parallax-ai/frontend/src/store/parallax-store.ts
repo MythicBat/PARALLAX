@@ -11,6 +11,8 @@ import type {
   StressTestPayload,
 } from "@/types/simulation";
 
+import type { ObservatoryPayload } from "@/types/observability";
+
 export type WorkspacePanel = 
   | "canvas"
   | "assumptions"
@@ -39,6 +41,7 @@ export interface SimulationResponse {
   information_value: InformationValuePayload;
   final: unknown;
   counterfactual: CounterfactualPayload;
+  observatory: ObservatoryPayload;
 }
 
 
