@@ -26,6 +26,9 @@ export function TopBar() {
   } : pathname.startsWith("/futures") ? {
     title: "Decision Workspace",
     subtitle: "Interactive decision simulation",
+  } : /^\/history\/[^/]+$/.test(pathname) ? {
+    title: "Decision Replay",
+    subtitle: "Compare how the future landscape changed.",
   } : pathname.startsWith("/history") ? {
     title: "Decision History",
     subtitle: "Saved simulations and decisions replay",
