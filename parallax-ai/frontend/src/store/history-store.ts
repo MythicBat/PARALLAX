@@ -17,12 +17,17 @@ import type {
   SimulationResponse,
 } from "@/store/parallax-store";
 
+import type {
+  DecisionRequest,
+} from "@/types/decision";
+
 
 interface HistoryState {
   items: DecisionHistoryItem[];
 
   saveSimulation: (
     simulation: SimulationResponse,
+    request: DecisionRequest,
   ) => DecisionHistoryItem;
 
   deleteItem: (
@@ -209,6 +214,7 @@ export const useHistoryStore =
 
         saveSimulation: (
           simulation,
+          request,
         ) => {
           const now =
             new Date().toISOString();
@@ -251,6 +257,7 @@ export const useHistoryStore =
                 ),
 
               simulation,
+              request,
             };
 
           set((state) => {
