@@ -7,6 +7,7 @@ import {
   RotateCcw,
   Search,
   Trash2,
+  Play,
 } from "lucide-react";
 
 import {
@@ -265,6 +266,16 @@ export default function HistoryPage() {
 
 
                       <div className="flex shrink-0 items-center gap-2">
+
+                        {item.request && (
+                          <button
+                            onClick={() => router.push(`/history/${item.id}`)}
+                            className="flex items-center gap-2 rounded-lg border border-white/[0.065] bg-white/[0.018] px-3 py-2 text-[8px] text-white/35 transition hover:border-[var(--accent)]/15 hover:text-[var(--accent)]/60"
+                          >
+                            <Play size={10} />
+                            Replay
+                          </button> 
+                        )}
 
                         <button
                           onClick={() =>
