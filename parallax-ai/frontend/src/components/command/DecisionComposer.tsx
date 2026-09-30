@@ -145,7 +145,7 @@ export function DecisionComposer() {
         await simulateDecision(payload);
 
       setSimulation(result);
-      saveSimulation(result);
+      saveSimulation(result, payload);
     } catch (error) {
       setError(
         error instanceof Error
