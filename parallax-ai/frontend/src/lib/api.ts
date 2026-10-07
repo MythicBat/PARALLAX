@@ -38,3 +38,25 @@ export async function simulateDecision(payload: unknown): Promise<SimulationResp
 
     return response.json();
 }
+
+export async function runCustomStress(
+    payload: {
+        decision: Record<string, unknown>;
+        architecture: Record<string, unknown>;
+        scenario: string;
+    },
+) {
+    const response = await fetch(`{API_BASE_URL}/decisions/stress`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        throw new Error("Custom stress test failed.");
+    }
+
+    return response.json();
+}
