@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -163,6 +163,10 @@ class StressTestResult(BaseModel):
 
     explanation: str
 
+class CustomStressRequest(BaseModel):
+    decision: dict[str, Any]
+    architecture: dict[str, Any]
+    scenario: str
 
 class CounterfactualCondition(BaseModel):
     variable: str
