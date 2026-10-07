@@ -32,6 +32,9 @@ export function TopBar() {
   } : pathname.startsWith("/history") ? {
     title: "Decision History",
     subtitle: "Saved simulations and decisions replay",
+  } : pathname.startsWith("/memory") ? {
+    title: "Memory Observatory",
+    subtitle: "Decision intelligence memory",
   } : {
     title: "Command Center",
     subtitle: "Decision intelligence workspace",
