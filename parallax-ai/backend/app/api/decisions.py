@@ -18,6 +18,14 @@ from app.observability import (
     build_observatory_payload,
 )
 
+from app.simulation.stress_engine import (
+    stress_engine,
+)
+
+from app.schemas.simulation import (
+    CustomStressRequest,
+)
+
 
 router = APIRouter(
     prefix="/decisions",
@@ -77,3 +85,20 @@ async def generate_futures(
                 ],
         }
     )
+
+@router.post("/stress")
+async def stress_decision(payload: CustomStressRequest):
+    begin_trace_session()
+
+    context = {
+        "decision": payload.decision,
+        "architecture": payload.architecture,
+        "custom_stress_scenario": payload.scenario,
+    }
+
+    result = await stress_engine.generate(context)
+
+    return {
+        "result": result,
+        "observatory": build_observatory_payload(),
+    }
