@@ -64,12 +64,39 @@ class StressEngine:
 
     async def run(self, context: dict[str, Any]) -> dict[str, Any]:
 
+        custom_scenario = context.get("custom_stress_scenario")
+
+        custom_instructions = ""
+
+        if custom_scenario:
+            custom_instructions = f"""
+IMPORTANT CUSTOM STRESS SCENARIO:
+
+The user specifically wants the decision tested against this scenario:
+{custom_scenario}
+
+You MUST include this exact hypothetical as one of the generated stress scenarios.
+
+Treat it as an adverse hypothetical, not as a confirmed fact.
+
+Evaluate EVERY decision option against it.
+
+You may generate additional relevant stress scenarios as usual, but do not ignore or
+replace the user's custom scenario.
+"""
+        prompt = f"""
+{custom_instructions}
+
+DECISION CONTEXT:
+{json.dumps(
+    context,
+    indent=2,
+    ensure_ascii=False,
+)}
+"""
+
         result = await model_router.generate(
-            prompt=json.dumps(
-                context,
-                indent=2,
-                ensure_ascii=False,
-            ),
+            prompt=prompt,
             system_prompt=SYSTEM_PROMPT,
             task_type="reasoning",
             complexity=0.83,

@@ -96,7 +96,7 @@ async def stress_decision(payload: CustomStressRequest):
         "custom_stress_scenario": payload.scenario,
     }
 
-    result = await stress_engine.generate(context)
+    result = await stress_engine.run(context)
 
     return {
         "result": result,
