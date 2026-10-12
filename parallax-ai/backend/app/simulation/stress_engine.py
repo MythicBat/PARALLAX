@@ -35,6 +35,7 @@ IMPORTANT: IMPACT ENUMERATION RULES
 The "impact" field MUST be exactly one of:
 
 - "benefits"
+- "neutral"
 - "minor_damage"
 - "moderate_damage"
 - "major_damage"
@@ -55,22 +56,43 @@ Use the exact allowed strings.
 If the impact is unclear or cannot be determined,
 use "uncertain".
 
-Do not use "uncertain" merely because an option
-is unaffected. If an option is genuinely unaffected,
-explain the neutral effect and use "minor_damage"
-only when a small adverse effect actually exists.
+Use "neutral" when the scenario has no material
+positive or negative impact on an option.
+
+Use "uncertain" only when the impact cannot
+reasonably be determined.
+
+Use "minor_damage" only when a small negative
+impact actually exists.
 
 Do not generate fake probabilities.
 
 "survives" means the option remains reasonably viable,
 not that the outcome is guaranteed.
 
+SCENARIO ID RULES:
+
+Every generated scenario MUST have a unique ID.
+
+Use IDs such as:
+- "scenario_1"
+- "scenario_2"
+- "scenario_3"
+
+Every impact's "scenario_id" MUST match
+the ID of an existing scenario.
+
+For every generated scenario, include
+exactly one impact for each decision option.
+
+Do not reuse scenario IDs.
+
 Return JSON only:
 
 {
   "scenarios": [
     {
-      "id": "temporary",
+      "id": "scenario_1",
       "name": "...",
       "description": "...",
       "severity": "severe"
@@ -79,7 +101,7 @@ Return JSON only:
   "impacts": [
     {
       "option": "...",
-      "scenario_id": "temporary",
+      "scenario_id": "scenario_1",
       "impact": "major_damage",
       "explanation": "...",
       "survives": true

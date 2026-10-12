@@ -147,6 +147,7 @@ export interface StressImpact {
 
   impact:
     | "benefits"
+    | "neutral"
     | "minor_damage"
     | "moderate_damage"
     | "major_damage"
