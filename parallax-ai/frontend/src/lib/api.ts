@@ -1,4 +1,5 @@
 import type { SimulationResponse } from "@/store/parallax-store";
+import type { CustomStressResponse } from "@/types/simulation";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -45,7 +46,7 @@ export async function runCustomStress(
         architecture: Record<string, unknown>;
         scenario: string;
     },
-) {
+): Promise<CustomStressResponse> {
     const response = await fetch(`{API_BASE_URL}/decisions/stress`, {
         method: "POST",
         headers: {
