@@ -24,6 +24,7 @@ import type {
   InferenceTrace,
 } from "@/types/observability";
 
+const EMPTY_TRACES: InferenceTrace[] = [];
 
 export default function AgentsPage() {
   const simulation =
@@ -38,7 +39,7 @@ export default function AgentsPage() {
 
   const traces =
     simulation?.observatory
-      ?.traces ?? [];
+      ?.traces ?? EMPTY_TRACES;
 
 
   const uniqueAgents =
