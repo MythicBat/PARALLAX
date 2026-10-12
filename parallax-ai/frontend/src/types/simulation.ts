@@ -302,3 +302,32 @@ export interface JuryPayload {
     };
   };
 }
+
+/* Custom targeted stress testing */
+
+export interface CustomStressObservatory {
+  provider: string;
+
+  traces: unknown[];
+
+  summary: {
+    total_calls: number;
+    total_tokens: number;
+    total_latency_ms: number;
+
+    lightning_calls: number;
+    nano_calls: number;
+    super_calls: number;
+    ultra_calls: number;
+
+    escalation_count: number;
+
+    simulation_duration_ms?: number;
+  };
+}
+
+export interface CustomStressResponse {
+  result: StressTestPayload;
+
+  observatory?: CustomStressObservatory;
+}
