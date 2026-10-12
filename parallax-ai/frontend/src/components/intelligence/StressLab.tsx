@@ -3,7 +3,9 @@
 import {
   Check,
   ShieldAlert,
+  FlaskConical,
   Skull,
+  Play,
   X,
 } from "lucide-react";
 
@@ -13,8 +15,10 @@ import {
 } from "react";
 
 import { useParallaxStore } from "@/store/parallax-store";
+import { runCustomStress } from "@/lib/api";
 
 import type {
+  CustomStressResponse,
   StressImpact,
   StressScenario,
 } from "@/types/simulation";
@@ -26,6 +30,14 @@ export function StressLab() {
       (state) =>
         state.simulation,
     );
+  
+  const [customScenario, setCustomScenario] = useState("");
+  
+  const [runningCustom, setRunningCustom] = useState(false);
+
+  const [customResult, setCustomResult] = useState<CustomStressResponse | null>(null);
+
+  const [customError, setCustomError] = useState<string | null>(null);
 
   const [selectedScenarioId, setSelectedScenarioId] =
     useState<string | null>(
@@ -72,6 +84,42 @@ export function StressLab() {
             selectedScenario.id,
         )
       : [];
+  
+  async function runScenario() {
+    if (!simulation || !customScenario.trim()) {
+      return;
+    }
+
+    setRunningCustom(true);
+    setCustomError(null);
+
+    try {
+      const architecture = simulation.architecture as Record<string, unknown>;
+
+      const architectureBody = (architecture["architecture"] as Record<string, unknown>) ?? architecture;
+
+      const decision = {
+        question: (architectureBody["core_question"] as string) ?? "Current decision",
+        options: simulation.futures.simulation.simulations.map((item) => ({
+          name: item.option,
+        })),
+      };
+
+      const result = await runCustomStress({
+        decision,
+        architecture: architectureBody,
+        scenario: customScenario.trim(),
+      });
+
+      setCustomResult(result);
+    } catch (cause) {
+      setCustomError(
+        cause instanceof Error ? cause.message : "An unknown error occurred.",
+      );
+    } finally {
+      setRunningCustom(false);
+    }
+  }
 
   return (
     <div className="h-full overflow-y-auto p-8">
@@ -95,6 +143,65 @@ export function StressLab() {
               environment changes.
             </p>
           </div>
+
+          <section className="mb-6 rounded-[18px] border border-[(--accent)]/10 bg-[var(--accent)]/[0.018] p-5">
+            <div className="flex items-start justify-between gap-5">
+              <div>
+                <div className="flex items-center gap-2 text-[8px] uppercase tracking-[0.14em] text-[var(--accent)]/50">
+                  <FlaskConical size={11} />
+                  Scenario Lab
+                </div>
+
+                <div className="mt-2 text-[10px] text-white/40">
+                  Introduce an adverse hypothetical and test every option against it.
+                </div>
+              </div>
+
+              <div className="rounded-md border border-white/[0.05] px-2 py-1 text-[7px] uppercase tracking-[0.1em] text-white/16">
+                Targeted inference
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-2 lg:flex-row">
+              <input
+                value={customScenario}
+                onChange={(event) => setCustomScenario(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !runningCustom) {
+                    void runScenario();
+                  }
+                }}
+                placeholder="What if Option B becomes 30% more expensive?"
+                className="min-w-0 flex-1 rounded-xl border border-white/[0.065] bg-black/20 px-4 py-3 text-[10px] text-white/55 outline-none placeholder:text-white/16 focus:border-[var(--accent)]/20"
+              />
+
+              <button
+                onClick={() => void runScenario()}
+                disabled={runningCustom || !customScenario.trim()}
+                className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[var(--accent)]/15 bg-[var(--accent)]/[0.055] px-4 py-3 text-[9px] text-[var(--accent)]/65 transition hover:bg-[var(--accent)]/[0.09] disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <Play size={10} />
+
+                {runningCustom ? "Running..." : "Run scenario"}
+              </button>
+            </div>
+
+            <div className="mt-3 text-[8px] text-white/16">
+            Runs only the Stress Agent and not the complete PARALLAX simulation.
+            </div>
+
+            {customError && (
+              <div className="mt-4 rounded-lg border border-red-400/10 bg-red-400/[0.025] p-3 text-[9px] text-red-300/60">
+                {customError}
+              </div>
+            )}
+          </section>
+
+          {customResult && (
+            <CustomStressResult
+              payload={customResult}
+            />
+          )}
 
           {stressTest.most_resilient_option && (
             <div className="rounded-[18px] border border-[var(--accent)]/15 bg-[var(--accent)]/[0.04] px-5 py-4">
@@ -335,5 +442,214 @@ function Severity({
     >
       {scenario.severity}
     </span>
+  );
+}
+
+function CustomStressResult({
+  payload,
+}: {
+  payload: CustomStressResponse;
+}) {
+  const wrapper =
+    payload.result;
+
+  const stress =
+    wrapper.stress_test;
+
+  const scenarios =
+    stress.scenarios;
+
+  const impacts =
+    stress.impacts;
+
+
+  return (
+    <section className="mb-6 rounded-[18px] border border-white/[0.07] bg-white/[0.02] p-5">
+
+      {/* HEADER */}
+
+      <div className="flex items-center justify-between gap-4">
+
+        <div>
+
+          <div className="text-[8px] uppercase tracking-[0.14em] text-[var(--accent)]/50">
+            Custom stress result
+          </div>
+
+          <div className="mt-2 text-[9px] text-white/25">
+            Isolated targeted analysis
+          </div>
+
+        </div>
+
+
+        <div className="text-right">
+
+          <div className="text-[8px] capitalize text-white/30">
+            {wrapper.inference.tier} tier
+          </div>
+
+          <div className="mt-1 text-[7px] text-white/15">
+            {
+              wrapper.inference
+                .usage
+                .total_tokens
+            }{" "}
+            tokens
+          </div>
+
+        </div>
+
+      </div>
+
+
+      {/* SCENARIOS */}
+
+      <div className="mt-5 space-y-3">
+
+        {scenarios.map(
+          (scenario) => {
+            const scenarioImpacts =
+              impacts.filter(
+                (
+                  impact:
+                    StressImpact,
+                ) =>
+                  impact.scenario_id ===
+                  scenario.id,
+              );
+
+
+            return (
+              <div
+                key={scenario.id}
+                className="rounded-xl border border-white/[0.055] bg-black/10 p-4"
+              >
+
+                {/* SCENARIO HEADER */}
+
+                <div className="flex items-start justify-between gap-4">
+
+                  <div>
+
+                    <div className="text-[10px] text-white/50">
+                      {
+                        scenario.name
+                      }
+                    </div>
+
+                    <div className="mt-2 text-[9px] leading-5 text-white/25">
+                      {
+                        scenario.description
+                      }
+                    </div>
+
+                  </div>
+
+
+                  <span className="rounded-md border border-white/[0.05] px-2 py-1 text-[7px] uppercase text-white/20">
+                    {
+                      scenario.severity
+                    }
+                  </span>
+
+                </div>
+
+
+                {/* OPTION IMPACTS */}
+
+                <div className="mt-4 grid gap-2 md:grid-cols-2">
+
+                  {scenarioImpacts.map(
+                    (
+                      impact,
+                      index,
+                    ) => (
+                      <div
+                        key={`${impact.option}-${index}`}
+                        className="rounded-lg border border-white/[0.045] bg-white/[0.012] p-3"
+                      >
+
+                        <div className="flex items-center justify-between gap-3">
+
+                          <span className="text-[9px] text-white/40">
+                            {
+                              impact.option
+                            }
+                          </span>
+
+
+                          <span
+                            className={
+                              impact.survives
+                                ? "text-[8px] text-[var(--accent)]/55"
+                                : "text-[8px] text-red-300/50"
+                            }
+                          >
+
+                            {impact.survives
+                              ? "SURVIVES"
+                              : "FAILS"}
+
+                          </span>
+
+                        </div>
+
+
+                        <div className="mt-2 text-[8px] uppercase tracking-[0.1em] text-white/18">
+                          {
+                            impact.impact
+                          }
+                        </div>
+
+
+                        <div className="mt-2 text-[8px] leading-4 text-white/24">
+                          {
+                            impact.explanation
+                          }
+                        </div>
+
+                      </div>
+                    ),
+                  )}
+
+                </div>
+
+              </div>
+            );
+          },
+        )}
+
+      </div>
+
+
+      {/* MOST RESILIENT */}
+
+      {stress.most_resilient_option && (
+        <div className="mt-5 border-t border-white/[0.05] pt-4">
+
+          <div className="text-[8px] uppercase tracking-[0.12em] text-white/17">
+            Most resilient
+          </div>
+
+          <div className="mt-2 text-[11px] text-[var(--accent)]/60">
+            {
+              stress.most_resilient_option
+            }
+          </div>
+
+
+          {stress.explanation && (
+            <p className="mt-2 text-[9px] leading-5 text-white/25">
+              {
+                stress.explanation
+              }
+            </p>
+          )}
+
+        </div>
+      )}
+
+    </section>
   );
 }
