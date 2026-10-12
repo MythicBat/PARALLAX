@@ -30,6 +30,36 @@ Examples might include:
 For every option and every scenario,
 evaluate the impact.
 
+IMPORTANT: IMPACT ENUMERATION RULES
+
+The "impact" field MUST be exactly one of:
+
+- "benefits"
+- "minor_damage"
+- "moderate_damage"
+- "major_damage"
+- "failure"
+- "uncertain"
+
+Do NOT output alternative values such as:
+
+- "minor"
+- "moderate"
+- "major"
+- "none"
+- "low"
+- "high"
+
+Use the exact allowed strings.
+
+If the impact is unclear or cannot be determined,
+use "uncertain".
+
+Do not use "uncertain" merely because an option
+is unaffected. If an option is genuinely unaffected,
+explain the neutral effect and use "minor_damage"
+only when a small adverse effect actually exists.
+
 Do not generate fake probabilities.
 
 "survives" means the option remains reasonably viable,
@@ -108,6 +138,39 @@ DECISION CONTEXT:
         )
 
         parsed = extract_json(result["content"])
+
+        # Normalize common model-generated aliases before validating against the schema.
+
+        IMPACT_ALIASES = {
+            "minor": "minor_damage",
+            "moderate": "moderate_damage",
+            "major": "major_damage",
+            "critical": "major_damage",
+            "positive": "benefits",
+            "benefit": "benefits",
+            "unknown": "uncertain",
+            "none": "neutral",
+            "no_impact": "neutral",
+            "no impact": "neutral",
+            "unaffected": "neutral",
+        }
+
+        if isinstance(parsed, dict):
+            impacts = parsed.get("impacts", [])
+
+            if isinstance(impacts, list):
+                for impact in impacts:
+                    if not isinstance(impact, dict):
+                        continue
+
+                    raw_impact = impact.get("impact")
+
+                    if not isinstance(raw_impact, str):
+                        continue
+
+                    normalized = raw_impact.lower().strip()
+
+                    impact["impact"] = IMPACT_ALIASES.get(normalized, normalized)
 
         stress_test = (
             StressTestResult.model_validate(parsed)
