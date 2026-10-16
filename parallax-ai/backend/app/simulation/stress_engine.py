@@ -65,6 +65,31 @@ reasonably be determined.
 Use "minor_damage" only when a small negative
 impact actually exists.
 
+IMPORTANT: SEVERITY ENUMERATION RULES
+
+The "severity" field MUST be exactly one of:
+
+- "moderate"
+- "severe"
+- "extreme"
+
+Use "moderate" for a meaningful but manageable
+adverse condition.
+
+Use "severe" for a serious adverse condition
+that significantly threatens an option.
+
+Use "extreme" for an exceptionally disruptive
+condition that could make an option unviable.
+
+Do NOT use:
+- "low"
+- "medium"
+- "high"
+- "critical"
+
+Use only the exact allowed values.
+
 Do not generate fake probabilities.
 
 "survives" means the option remains reasonably viable,
@@ -194,6 +219,34 @@ DECISION CONTEXT:
 
                     impact["impact"] = IMPACT_ALIASES.get(normalized, normalized)
 
+        # NORMALIZE SCENARIO SEVERITY ALIASES
+        SEVERITY_ALIASES = {
+            "low": "moderate",
+            "medium": "moderate",
+            "moderate": "moderate",
+            "high": "severe",
+            "severe": "severe",
+            "critical": "extreme",
+            "extreme": "extreme",
+        }
+
+        if isinstance(parsed, dict):
+            scenarios = parsed.get("scenarios", [])
+
+            if isinstance(scenarios, list):
+                for scenario in scenarios:
+                    if not isinstance(scenario, dict):
+                        continue
+
+                    raw_severity = scenario.get("severity")
+
+                    if not isinstance(raw_severity, str):
+                        continue
+
+                    normalized = raw_severity.lower().strip()
+
+                    scenario["severity"] = SEVERITY_ALIASES.get(normalized, normalized)
+        
         stress_test = (
             StressTestResult.model_validate(parsed)
         )
