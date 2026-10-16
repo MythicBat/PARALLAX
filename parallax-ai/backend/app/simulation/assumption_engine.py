@@ -1,6 +1,7 @@
 import json
 import uuid
 from typing import Any
+from pydantic import ValidationError
 
 from app.core.json_utils import extract_json
 from app.schemas.simulation import AssumptionLedger
@@ -78,15 +79,52 @@ class AssumptionEngine:
             stage="assumption-audit"
         )
 
-        parsed = extract_json(
-            result["content"]
-        )
+        ledger = None
 
-        ledger = (
-            AssumptionLedger.model_validate(
-                parsed
-            )
-        )
+        for attempt in range(2):
+            content = result.get("content") or ""
+
+            try:
+                parsed = extract_json(content)
+                ledger = AssumptionLedger.model_validate(parsed)
+                break
+            except (ValueError, ValidationError) as exc:
+                print(
+                    f"Assumption Engine validation failed "
+                    f"(attempt {attempt + 1}/2): "
+                    f"{type(exc).__name__}"
+                )
+
+                print("Model:", result.get("model"))
+                print("Tier:", result.get("tier"))
+                print("Response length:", len(content))
+                print("Usage:", result.get("usage"))
+
+                if attempt == 1:
+                    raise
+
+                result = await model_router.generate(
+                    prompt=(
+                        "Generate a valid Assumption Ledger "
+                        "for the following decision context.\n\n"
+                        "Return ONLY a complete JSON object "
+                        "matching the required schema.\n"
+                        "Do not include markdown or commentary.\n"
+                        "Use the exact allowed enumeration values.\n\n"
+                        f"{json.dumps(context, ensure_ascii=False)}"
+                    ),
+                    system_prompt=SYSTEM_PROMPT,
+                    task_type="assumption_detection",
+                    complexity=0.58,
+                    temperature=0.0,
+                    max_tokens=3800,
+                    agent="Assumption Auditor",
+                    role="evidence and assumption audit retry",
+                    stage="assumption-audit-retry",
+                )
+
+        if ledger is None:
+            raise RuntimeError("Assumption Engine did not produce a valid ledger")
 
         for item in ledger.items:
             item.id = (

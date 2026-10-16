@@ -24,41 +24,32 @@ def clean_code_fence(text: str) -> str:
 
 
 def extract_json(text: str) -> Any:
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("Model response is empty.")
+
     cleaned = clean_code_fence(text)
 
+    # Attempt 1: Parse the complete response.
     try:
         return json.loads(cleaned)
-
     except json.JSONDecodeError:
         pass
 
-    object_match = re.search(
-        r"\{.*\}",
-        cleaned,
-        re.DOTALL,
-    )
+    # Attempt 2: Find the first valid JSON object
+    # or array embedded in the response.
+    decoder = json.JSONDecoder()
 
-    if object_match:
+    for index, character in enumerate(cleaned):
+        if character not in "{[":
+            continue
+
         try:
-            return json.loads(
-                object_match.group(0)
-            )
+            parsed, _ = decoder.raw_decode(cleaned[index:])
         except json.JSONDecodeError:
-            pass
+            continue
 
-    array_match = re.search(
-        r"\[.*\]",
-        cleaned,
-        re.DOTALL,
-    )
-
-    if array_match:
-        try:
-            return json.loads(
-                array_match.group(0)
-            )
-        except json.JSONDecodeError:
-            pass
+        if isinstance(parsed, (dict, list)):
+            return parsed
 
     raise ValueError(
         "Model response did not contain valid JSON."
