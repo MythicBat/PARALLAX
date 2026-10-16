@@ -137,6 +137,53 @@ Return JSON only:
 }
 """
 
+def normalize_stress_output(parsed: Any) -> Any:
+    if not isinstance(parsed, dict):
+        return parsed
+
+    impact_aliases = {
+        "minor": "minor_damage",
+        "moderate": "moderate_damage",
+        "major": "major_damage",
+        "critical": "major_damage",
+        "positive": "benefits",
+        "benefit": "benefits",
+        "unknown": "uncertain",
+        "none": "neutral",
+        "no_impact": "neutral",
+        "no impact": "neutral",
+        "unaffected": "neutral",
+    }
+
+    severity_aliases = {
+        "low": "moderate",
+        "medium": "moderate",
+        "high": "severe",
+        "critical": "extreme",
+    }
+
+    for impact in parsed.get("impacts", []):
+        if not isinstance(impact, dict):
+            continue
+
+        value = impact.get("impact")
+
+        if isinstance(value, str):
+            normalized = value.lower().strip()
+            impact["impact"] = impact_aliases.get(normalized, normalized)
+
+    for scenario in parsed.get("scenarios", []):
+        if not isinstance(scenario, dict):
+            continue
+
+        value = scenario.get("severity")
+
+        if isinstance(value, str):
+            normalized = value.lower().strip()
+            scenario["severity"] = severity_aliases.get(normalized, normalized)
+
+    return parsed
+
 class StressEngine:
 
     async def run(self, context: dict[str, Any]) -> dict[str, Any]:
@@ -185,6 +232,7 @@ DECISION CONTEXT:
         )
 
         parsed = extract_json(result["content"])
+        parsed = normalize_stress_output(parsed)
 
         # Normalize common model-generated aliases before validating against the schema.
 
@@ -247,9 +295,7 @@ DECISION CONTEXT:
 
                     scenario["severity"] = SEVERITY_ALIASES.get(normalized, normalized)
         
-        stress_test = (
-            StressTestResult.model_validate(parsed)
-        )
+        stress_test = StressTestResult.model_validate(parsed)
 
         id_mapping: dict[str, str] = {}
 
