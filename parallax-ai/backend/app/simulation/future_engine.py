@@ -65,12 +65,61 @@ Required structure:
 
 SYSTEM_PROMPT += "\nFor EVERY generated item, include ALL required JSON fields shown above. Do not omit fields. If evidence is unknown, express uncertainty honestly rather than inventing facts. Return one complete JSON object.\n"
 
+def normalize_future_output(data):
+    """
+    Repair missing presentation-only fields in future scenarios.
+
+    Do not fabricate outcomes, probabilities, scores, or other substantive simulation data.
+    """
+
+    if not isinstance(data, dict):
+        return data
+
+    simulations = data.get("simulations")
+
+    if not isinstance(simulations, list):
+        return data
+
+    for option_index, option in enumerate(simulations):
+        if not isinstance(option, dict):
+            continue
+
+        option_name = option.get("option") or f"Option {option_index + 1}"
+        futures = option.get("futures")
+
+        if not isinstance(futures, list):
+            continue
+
+        for future_index, future in enumerate(futures):
+            if not isinstance(future, dict):
+                continue
+
+            title = future.get("title")
+
+            if not isinstance(title, str) or not title.strip():
+                scenario_type = future.get("scenario_type")
+
+                scenario_labels = {
+                    "best_case": "Best-case future",
+                    "base_case": "Base-case future",
+                    "worst_case": "Worst-case future",
+                }
+
+                label = scenario_labels.get(
+                    scenario_type,
+                    f"Future {future_index + 1}",
+                )
+
+                future["title"] = f"{option_name} — {label}"
+    return data      
+
 class FutureEngine:
     async def generate(self, context: dict[str, Any]) -> dict[str, Any]:
         validated, result = await generate_validated(
             context=context,
             system_prompt=SYSTEM_PROMPT,
             schema=SimulationResult,
+            normalize=normalize_future_output,
             task_type="simulation",
             complexity=0.82,
             temperature=0.35,
