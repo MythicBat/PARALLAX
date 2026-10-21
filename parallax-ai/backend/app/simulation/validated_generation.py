@@ -9,6 +9,18 @@ from app.services.model_router import model_router
 
 T = TypeVar("T", bound=BaseModel)
 
+def normalize_assumption_ledger(parsed: Any) -> Any:
+    if isinstance(parsed, list):
+        return {"items": parsed}
+
+    if isinstance(parsed, dict):
+        if "items" in parsed:
+            return parsed
+
+        if "statement" in parsed and "category" in parsed:
+            return {"items": [parsed]}
+
+    return parsed
 
 async def generate_validated(
     *,
@@ -45,8 +57,12 @@ async def generate_validated(
         )
         try:
             parsed = extract_json(result.get("content") or "")
+            if schema.__name__ == "AssumptionLedger":
+                parsed = normalize_assumption_ledger(parsed)
+
             if normalize is not None:
                 parsed = normalize(parsed)
+
             validated = schema.model_validate(parsed)
             return validated, result
         except (ValueError, ValidationError) as exc:
@@ -66,6 +82,7 @@ async def generate_validated(
                 "Regenerate the complete answer as a SINGLE JSON object, "
                 "with no markdown or commentary. Every required field must "
                 "be present for EVERY item. Do not invent facts.\n"
+                f"Preserve the exact top-level structure required by the JSON schema. Do not return individual array elements as the entire response.\n"
                 f"Validation problem: {problem}\n"
                 f"Required JSON schema: {json.dumps(schema.model_json_schema(), ensure_ascii=False)}"
             )
