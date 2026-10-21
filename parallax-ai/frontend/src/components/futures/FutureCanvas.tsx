@@ -200,7 +200,7 @@ export function FutureCanvas() {
         minZoom={0.3}
         maxZoom={1.6}
         defaultEdgeOptions={{
-          type: "bezier",
+          type: "default",
         }}
         proOptions={{
           hideAttribution: true,

@@ -228,7 +228,6 @@ export interface InformationItem {
     | "high";
 
   affected_options: string[];
-  suggested_action: string;
 }
 
 export interface InformationValuePayload {

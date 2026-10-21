@@ -24,8 +24,29 @@ export function AIJury() {
     return null;
   }
 
-  const jury =
-    simulation.jury.jury;
+  const jury = simulation.jury?.jury;
+
+  if (!jury || !Array.isArray(jury.votes)) {
+    return (
+      <div className="flex h-full items-center justify-center p-8">
+        <div className="max-w-md rounded-[20px] border border-white/[0.07] bg-white/[0.018] p-8 text-center">
+          <Scale
+            size={24}
+            className="mx-auto text-[var(--accent)]/50"
+          />
+
+          <h2 className="mt-4 text-lg font-light text-white/80">
+            AI Jury unavailable
+          </h2>
+
+          <p className="mt-3 text-[11px] leading-6 text-white/35">
+            This simulation does not contain a valid AI Jury result.
+            Other intelligence workspaces may still be available.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full overflow-y-auto p-8">
