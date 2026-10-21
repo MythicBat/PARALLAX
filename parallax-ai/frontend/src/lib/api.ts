@@ -47,7 +47,7 @@ export async function runCustomStress(
         scenario: string;
     },
 ): Promise<CustomStressResponse> {
-    const response = await fetch(`{API_BASE_URL}/decisions/stress`, {
+    const response = await fetch(`${API_BASE_URL}/decisions/stress`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
