@@ -1,11 +1,7 @@
 import json
 from typing import Any
-
-from app.core.json_utils import extract_json
-from app.schemas.simulation import (
-    InformationValueResult,
-)
-from app.services.model_router import model_router
+from app.schemas.simulation import InformationValueResult
+from app.simulation.validated_generation import generate_validated
 
 
 SYSTEM_PROMPT = """
@@ -46,55 +42,31 @@ Return JSON only:
 }
 """
 
+SYSTEM_PROMPT += "\nFor EVERY generated item, include ALL required JSON fields shown above. Do not omit fields. If evidence is unknown, express uncertainty honestly rather than inventing facts. Return one complete JSON object.\n"
 
 class InformationValueEngine:
-
-    async def analyze(
-        self,
-        context: dict[str, Any],
-    ) -> dict[str, Any]:
-
-        result = await model_router.generate(
-            prompt=json.dumps(
-                context,
-                indent=2,
-                ensure_ascii=False,
-            ),
+    async def analyze(self, context: dict[str, Any]) -> dict[str, Any]:
+        validated, result = await generate_validated(
+            context=context,
             system_prompt=SYSTEM_PROMPT,
+            schema=InformationValueResult,
             task_type="reasoning",
             complexity=0.72,
             temperature=0.2,
             max_tokens=2200,
             agent="Information Strategist",
             role="value-of-information analysis",
-            stage="information-value"
+            stage="information-value",
         )
-
-        parsed = extract_json(
-            result["content"]
-        )
-
-        information = (
-            InformationValueResult.model_validate(
-                parsed
-            )
-        )
-
         return {
-            "information_value":
-                information.model_dump(),
-
+            "information_value": validated.model_dump(),
             "inference": {
                 "tier": result["tier"],
                 "model": result["model"],
-                "latency_ms":
-                    result["latency_ms"],
-                "usage":
-                    result["usage"],
+                "latency_ms": result["latency_ms"],
+                "usage": result["usage"],
             },
         }
 
 
-information_value_engine = (
-    InformationValueEngine()
-)
+information_value_engine = InformationValueEngine()

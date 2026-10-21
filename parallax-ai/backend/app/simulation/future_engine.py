@@ -1,10 +1,9 @@
 import json
-import uuid
 from typing import Any
-
-from app.core.json_utils import extract_json
+import uuid
 from app.schemas.simulation import SimulationResult
-from app.services.model_router import model_router
+from app.simulation.validated_generation import generate_validated
+
 
 SYSTEM_PROMPT = """
 You are the Future Simulation Engine inside PARALLAX.
@@ -64,42 +63,27 @@ Required structure:
 }
 """
 
+SYSTEM_PROMPT += "\nFor EVERY generated item, include ALL required JSON fields shown above. Do not omit fields. If evidence is unknown, express uncertainty honestly rather than inventing facts. Return one complete JSON object.\n"
+
 class FutureEngine:
-
     async def generate(self, context: dict[str, Any]) -> dict[str, Any]:
-
-        result = await model_router.generate(
-            prompt=json.dumps(
-                context,
-                indent=2,
-                ensure_ascii=False,
-            ),
+        validated, result = await generate_validated(
+            context=context,
             system_prompt=SYSTEM_PROMPT,
+            schema=SimulationResult,
             task_type="simulation",
             complexity=0.82,
             temperature=0.35,
             max_tokens=5000,
             agent="Future Simulator",
             role="scenario simulation",
-            stage="future-simulation"
+            stage="future-simulation",
         )
-
-        parsed = extract_json(result["content"])
-
-        simulation = (
-            SimulationResult.model_validate(parsed)
-        )
-
-        # Replace any LLM-generated IDs with application-controlled IDs.
-        for option in simulation.simulations:
+        for option in validated.simulations:
             for future in option.futures:
-                future.id = (
-                    "future_"
-                    + uuid.uuid4().hex[:12]
-                )
-
+                future.id = "future_" + uuid.uuid4().hex[:12]
         return {
-            "simulation": simulation.model_dump(),
+            "simulation": validated.model_dump(),
             "inference": {
                 "tier": result["tier"],
                 "model": result["model"],
@@ -107,5 +91,6 @@ class FutureEngine:
                 "usage": result["usage"],
             },
         }
+
 
 future_engine = FutureEngine()

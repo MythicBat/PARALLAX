@@ -1,10 +1,9 @@
 import json
-import uuid
 from typing import Any
+import uuid
+from app.schemas.simulation import StressTestResult
+from app.simulation.validated_generation import generate_validated
 
-from app.core.json_utils import extract_json
-from app.schemas.simulation import (StressTestResult)
-from app.services.model_router import model_router
 
 SYSTEM_PROMPT = """
 You are the Stress Test Engine inside PARALLAX.
@@ -137,6 +136,8 @@ Return JSON only:
 }
 """
 
+SYSTEM_PROMPT += "\nFor EVERY generated item, include ALL required JSON fields shown above. Do not omit fields. If evidence is unknown, express uncertainty honestly rather than inventing facts. Return one complete JSON object.\n"
+
 def normalize_stress_output(parsed: Any) -> Any:
     if not isinstance(parsed, dict):
         return parsed
@@ -185,43 +186,23 @@ def normalize_stress_output(parsed: Any) -> Any:
     return parsed
 
 class StressEngine:
-
     async def run(self, context: dict[str, Any]) -> dict[str, Any]:
-
         custom_scenario = context.get("custom_stress_scenario")
-
         custom_instructions = ""
-
         if custom_scenario:
-            custom_instructions = f"""
-IMPORTANT CUSTOM STRESS SCENARIO:
-
-The user specifically wants the decision tested against this scenario:
-{custom_scenario}
-
-You MUST include this exact hypothetical as one of the generated stress scenarios.
-
-Treat it as an adverse hypothetical, not as a confirmed fact.
-
-Evaluate EVERY decision option against it.
-
-You may generate additional relevant stress scenarios as usual, but do not ignore or
-replace the user's custom scenario.
-"""
-        prompt = f"""
-{custom_instructions}
-
-DECISION CONTEXT:
-{json.dumps(
-    context,
-    indent=2,
-    ensure_ascii=False,
-)}
-"""
-
-        result = await model_router.generate(
-            prompt=prompt,
+            custom_instructions = (
+                "IMPORTANT CUSTOM STRESS SCENARIO (hypothetical, NOT a confirmed fact):\n"
+                f"{custom_scenario}\n"
+                "Include this exact hypothetical as one of the scenarios and evaluate "
+                "EVERY decision option against it.\n"
+            )
+        prompt_text = custom_instructions + "DECISION CONTEXT:\n" + json.dumps(
+            context, indent=2, ensure_ascii=False
+        )
+        validated, result = await generate_validated(
+            context=context,
             system_prompt=SYSTEM_PROMPT,
+            schema=StressTestResult,
             task_type="reasoning",
             complexity=0.83,
             temperature=0.3,
@@ -229,95 +210,23 @@ DECISION CONTEXT:
             agent="Stress Tester",
             role="adverse scenario testing",
             stage="stress-testing",
+            normalize=normalize_stress_output,
+            prompt=prompt_text,
         )
-
-        parsed = extract_json(result["content"])
-        parsed = normalize_stress_output(parsed)
-
-        # Normalize common model-generated aliases before validating against the schema.
-
-        IMPACT_ALIASES = {
-            "minor": "minor_damage",
-            "moderate": "moderate_damage",
-            "major": "major_damage",
-            "critical": "major_damage",
-            "positive": "benefits",
-            "benefit": "benefits",
-            "unknown": "uncertain",
-            "none": "neutral",
-            "no_impact": "neutral",
-            "no impact": "neutral",
-            "unaffected": "neutral",
-        }
-
-        if isinstance(parsed, dict):
-            impacts = parsed.get("impacts", [])
-
-            if isinstance(impacts, list):
-                for impact in impacts:
-                    if not isinstance(impact, dict):
-                        continue
-
-                    raw_impact = impact.get("impact")
-
-                    if not isinstance(raw_impact, str):
-                        continue
-
-                    normalized = raw_impact.lower().strip()
-
-                    impact["impact"] = IMPACT_ALIASES.get(normalized, normalized)
-
-        # NORMALIZE SCENARIO SEVERITY ALIASES
-        SEVERITY_ALIASES = {
-            "low": "moderate",
-            "medium": "moderate",
-            "moderate": "moderate",
-            "high": "severe",
-            "severe": "severe",
-            "critical": "extreme",
-            "extreme": "extreme",
-        }
-
-        if isinstance(parsed, dict):
-            scenarios = parsed.get("scenarios", [])
-
-            if isinstance(scenarios, list):
-                for scenario in scenarios:
-                    if not isinstance(scenario, dict):
-                        continue
-
-                    raw_severity = scenario.get("severity")
-
-                    if not isinstance(raw_severity, str):
-                        continue
-
-                    normalized = raw_severity.lower().strip()
-
-                    scenario["severity"] = SEVERITY_ALIASES.get(normalized, normalized)
-        
-        stress_test = StressTestResult.model_validate(parsed)
-
-        id_mapping: dict[str, str] = {}
-
-        for scenario in stress_test.scenarios:
-            old_id = scenario.id
-
-            new_id = (
-                "stress_"
-                + uuid.uuid4().hex[:10]
-            )
-
-            id_mapping[old_id] = new_id
-            scenario.id = new_id
-
-        for impact in stress_test.impacts:
-            if (impact.scenario_id in id_mapping):
-                impact.scenario_id = (
-                    id_mapping[impact.scenario_id]
-                )
-
+        # Validate scenario references before replacing IDs.
+        scenario_ids = [s.id for s in validated.scenarios]
+        if len(set(scenario_ids)) != len(scenario_ids):
+            raise ValueError("Stress Engine returned duplicate scenario IDs")
+        unknown = {i.scenario_id for i in validated.impacts} - set(scenario_ids)
+        if unknown:
+            raise ValueError(f"Stress Engine returned unknown scenario IDs: {unknown}")
+        id_mapping = {old: "stress_" + uuid.uuid4().hex[:10] for old in scenario_ids}
+        for scenario in validated.scenarios:
+            scenario.id = id_mapping[scenario.id]
+        for impact in validated.impacts:
+            impact.scenario_id = id_mapping[impact.scenario_id]
         return {
-            "stress_test": stress_test.model_dump(),
+            "stress_test": validated.model_dump(),
             "inference": {
                 "tier": result["tier"],
                 "model": result["model"],
@@ -325,5 +234,6 @@ DECISION CONTEXT:
                 "usage": result["usage"],
             },
         }
+
 
 stress_engine = StressEngine()

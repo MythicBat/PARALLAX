@@ -1,10 +1,8 @@
 import json
-import uuid
 from typing import Any
-
-from app.core.json_utils import extract_json
+import uuid
 from app.schemas.simulation import BlindSpotReport
-from app.services.model_router import model_router
+from app.simulation.validated_generation import generate_validated
 
 
 SYSTEM_PROMPT = """
@@ -41,57 +39,31 @@ Return JSON only:
 }
 """
 
+SYSTEM_PROMPT += "\nFor EVERY generated item, include ALL required JSON fields shown above. Do not omit fields. If evidence is unknown, express uncertainty honestly rather than inventing facts. Return one complete JSON object.\n"
 
 class BlindSpotEngine:
-
-    async def analyze(
-        self,
-        context: dict[str, Any],
-    ) -> dict[str, Any]:
-
-        result = await model_router.generate(
-            prompt=json.dumps(
-                context,
-                indent=2,
-                ensure_ascii=False,
-            ),
+    async def analyze(self, context: dict[str, Any]) -> dict[str, Any]:
+        validated, result = await generate_validated(
+            context=context,
             system_prompt=SYSTEM_PROMPT,
+            schema=BlindSpotReport,
             task_type="reasoning",
             complexity=0.78,
             temperature=0.3,
             max_tokens=2200,
             agent="Blind Spot Analyst",
             role="hidden-risk discovery",
-            stage="blind-spot-detection"
+            stage="blind-spot-detection",
         )
-
-        parsed = extract_json(
-            result["content"]
-        )
-
-        report = (
-            BlindSpotReport.model_validate(
-                parsed
-            )
-        )
-
-        for blind_spot in report.blind_spots:
-            blind_spot.id = (
-                "blind_"
-                + uuid.uuid4().hex[:10]
-            )
-
+        for item in validated.blind_spots:
+            item.id = "blind_" + uuid.uuid4().hex[:10]
         return {
-            "report":
-                report.model_dump(),
-
+            "report": validated.model_dump(),
             "inference": {
                 "tier": result["tier"],
                 "model": result["model"],
-                "latency_ms":
-                    result["latency_ms"],
-                "usage":
-                    result["usage"],
+                "latency_ms": result["latency_ms"],
+                "usage": result["usage"],
             },
         }
 
