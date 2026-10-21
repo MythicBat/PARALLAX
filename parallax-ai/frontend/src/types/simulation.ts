@@ -184,27 +184,17 @@ export interface StressTestPayload {
 
 /** Counter-factual, Information, AI Jury */
 export interface CounterfactualCondition {
-  id: string;
-  option: string;
-  condition: string;
+  variable: string;
+  required_change: string;
   explanation: string;
-
-  likelihood:
-    | "low"
-    | "medium"
-    | "high";
-
-  impact:
-    | "moderate"
-    | "high"
-    | "decisive";
-
-  observable_signal: string;
 }
 
 export interface CounterfactualPayload {
   counterfactual: {
+    current_preference: string;
+    challenger: string;
     conditions: CounterfactualCondition[];
+    plausible: boolean;
     summary: string;
   };
 
@@ -223,17 +213,16 @@ export interface CounterfactualPayload {
 
 
 export interface InformationItem {
-  id: string;
   question: string;
-  why_it_matters: string;
+  reason: string;
 
-  information_value:
+  decision_impact:
     | "low"
     | "medium"
     | "high"
     | "critical";
 
-  effort:
+  effort_to_obtain:
     | "low"
     | "medium"
     | "high";
@@ -243,12 +232,9 @@ export interface InformationItem {
 }
 
 export interface InformationValuePayload {
-  analysis: {
+  information_value: {
     items: InformationItem[];
-    highest_value_question:
-      | string
-      | null;
-    summary: string;
+    highest_value_question: string
   };
 
   inference: {

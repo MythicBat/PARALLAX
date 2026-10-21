@@ -85,10 +85,8 @@ export function WorkspaceSwitcher() {
       (state) =>
         state.simulation,
     );
-
-  const getCount = (
-    id: WorkspacePanel,
-  ) => {
+  
+  const getCount = (id: WorkspacePanel): number | null => {
     if (!simulation) {
       return null;
     }
@@ -96,49 +94,34 @@ export function WorkspaceSwitcher() {
     switch (id) {
       case "assumptions":
         return (
-          simulation
-            .assumption_ledger
-            .ledger.items.length
+          simulation.assumption_ledger?.ledger?.items?.length ?? 0
         );
-
+      
       case "blind-spots":
         return (
-          simulation
-            .blind_spots
-            .report
-            .blind_spots.length
+          simulation.blind_spots?.report?.blind_spots?.length ?? 0
         );
 
       case "stress":
         return (
-          simulation
-            .stress_test
-            .stress_test
-            .scenarios.length
+          simulation.stress_test?.stress_test?.scenarios?.length ?? 0
         );
 
       case "counterfactual":
         return (
-          simulation
-            .counterfactual
-            .counterfactual
-            .conditions.length
+          simulation.counterfactual?.counterfactual?.conditions?.length ?? 0
         );
 
       case "information":
         return (
-          simulation
-            .information_value
-            .analysis.items.length
+          simulation.information_value?.information_value?.items?.length ?? 0
         );
-
+      
       case "jury":
         return (
-          simulation
-            .jury
-            .jury.votes.length
+          simulation.jury?.jury?.votes?.length ?? 0
         );
-
+      
       default:
         return null;
     }
