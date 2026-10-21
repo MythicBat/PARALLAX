@@ -64,6 +64,24 @@ Required structure:
 """
 
 SYSTEM_PROMPT += "\nFor EVERY generated item, include ALL required JSON fields shown above. Do not omit fields. If evidence is unknown, express uncertainty honestly rather than inventing facts. Return one complete JSON object.\n"
+SYSTEM_PROMPT += """
+IMPORTANT STRUCTURAL REQUIREMENTS:
+
+For every decision option:
+- Return exactly three futures.
+- The scenario_type values must be:
+  best_case, base_case, worst_case.
+- Every future MUST contain:
+  id, option, scenario_type, title, narrative,
+  outcome_dimensions, key_drivers, assumptions_required,
+  warning_signals, reversibility, uncertainty,
+  robustness_score.
+- Every outcome dimension MUST contain:
+  name, direction, explanation.
+- Do not omit required fields, even when evidence is limited.
+- Do not return a partial JSON object.
+- Ensure the final JSON is syntactically valid.
+"""
 
 def normalize_future_output(data):
     """
