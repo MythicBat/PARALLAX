@@ -44,9 +44,7 @@ export function StressLab() {
       null,
     );
 
-  const stressTest =
-    simulation?.stress_test
-      .stress_test;
+  const stressTest = simulation?.stress_test?.stress_test;
 
   const selectedScenario =
     useMemo(() => {
@@ -98,12 +96,35 @@ export function StressLab() {
 
       const architectureBody = (architecture["architecture"] as Record<string, unknown>) ?? architecture;
 
+      const architectureOptions = architectureBody["options"];
+
+      const futureOptions = simulation.futures?.simulation?.simulations?.map(
+        (item) => ({ name: item.option }),
+      );
+
+      const options = futureOptions ?? (
+        Array.isArray(architectureOptions) ? architectureOptions.map((item: unknown) => {
+          if (typeof item === "string") {
+            return { name: item };
+          }
+
+          if (item && typeof item === "object" && "name" in item && typeof item.name === "string") {
+            return { name: item.name };
+          }
+
+          return null;
+        }).filter((item): item is { name: string } => item !== null)
+        : []
+      );
+
+      if (options.length === 0) {
+        throw new Error("Decision options are not available for custom stress testing.");
+      }
+
       const decision = {
         question: (architectureBody["core_question"] as string) ?? "Current decision",
-        options: simulation.futures.simulation.simulations.map((item) => ({
-          name: item.option,
-        })),
-      };
+        options,
+      }
 
       const result = await runCustomStress({
         decision,

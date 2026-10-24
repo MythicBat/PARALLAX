@@ -17,13 +17,13 @@ export function IntelligenceRail() {
         return null;
     }
 
-    const criticalAssumptions = simulation.assumption_ledger.ledger.items.filter((item) => 
+    const criticalAssumptions = (simulation.assumption_ledger?.ledger?.items ?? []).filter((item) => 
         item.impact === "critical").length;
 
-    const seriousBlindSpots = simulation.blind_spots.report.blind_spots.filter((item) => 
+    const seriousBlindSpots = (simulation.blind_spots?.report?.blind_spots ?? []).filter((item) => 
         item.severity === "critical" || item.severity === "high").length;
 
-    const resilient = simulation.stress_test.stress_test.most_resilient_option;
+    const resilient = simulation.stress_test?.stress_test?.most_resilient_option ?? null;
 
     return (
         <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-xl border border-white/[0.07] bg-[#080a0e]/85 p-1 backdrop-blur-xl">

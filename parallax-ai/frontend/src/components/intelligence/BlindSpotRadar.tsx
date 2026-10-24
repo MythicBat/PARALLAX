@@ -9,6 +9,8 @@ import {
 
 import { useParallaxStore } from "@/store/parallax-store";
 
+import { IntelligenceUnavailable } from "./IntelligenceUnavailable";
+
 import type {
   BlindSpot,
 } from "@/types/simulation";
@@ -25,9 +27,18 @@ export function BlindSpotRadar() {
     return null;
   }
 
-  const blindSpots =
-    simulation.blind_spots
-      .report.blind_spots;
+  const report = simulation.blind_spots?.report;
+
+  if (!report || !Array.isArray(report.blind_spots)) {
+    return (
+      <IntelligenceUnavailable
+        title="Blind Spots Radar unavailable"
+        description="Blind Spot detection could not be completed."
+      />
+    );
+  }
+
+  const blindSpots = report.blind_spots;
 
   const critical =
     blindSpots.filter(

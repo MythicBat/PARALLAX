@@ -23,6 +23,7 @@ import { FutureInspector } from "@/components/futures/FutureInspector";
 import { FutureNode } from "@/components/futures/FutureNode";
 import { OptionNode } from "@/components/futures/OptionNode";
 import { IntelligenceRail } from "./IntelligenceRail";
+import { IntelligenceUnavailable } from "../intelligence/IntelligenceUnavailable";
 
 import { buildFutureGraph } from "@/lib/future-graph";
 
@@ -74,7 +75,7 @@ export function FutureCanvas() {
     "Current decision";
 
   const graph = useMemo(() => {
-    if (!simulation) {
+    if (!simulation?.futures) {
       return {
         nodes: [],
         edges: [],
@@ -154,6 +155,17 @@ export function FutureCanvas() {
             simulate a decision first.
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (!simulation.futures) {
+    return (
+      <div className="h-[calc(100vh-72px)] w-full">
+        <IntelligenceUnavailable
+          title="Future Canvas unavailable"
+          description="The Future Simulator could not complete its analysis. Other intelligence workspaces remain accessible."
+        />
       </div>
     );
   }
@@ -245,11 +257,9 @@ function CanvasHeader() {
       (state) => state.simulation,
     );
 
-  if (!simulation) return null;
+  if (!simulation?.futures) {return null};
 
-  const futures =
-    simulation.futures.simulation
-      .simulations;
+  const futures = simulation.futures.simulation.simulations;
 
   const totalFutures =
     futures.reduce(

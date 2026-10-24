@@ -9,6 +9,8 @@ import {
 
 import { useParallaxStore } from "@/store/parallax-store";
 
+import { IntelligenceUnavailable } from "./IntelligenceUnavailable";
+
 import type {
   AssumptionItem,
   EvidenceCategory,
@@ -55,9 +57,18 @@ export function AssumptionLedger() {
     return null;
   }
 
-  const items =
-    simulation.assumption_ledger
-      .ledger.items;
+  const ledger = simulation.assumption_ledger?.ledger;
+
+  if (!ledger || !Array.isArray(ledger.items)) {
+    return (
+      <IntelligenceUnavailable
+        title="Assumption Ledger unavailable"
+        description="The assumption analysis could not be completed."
+      />
+    );
+  }
+
+  const items = ledger.items;
 
   const groups =
     Object.keys(
