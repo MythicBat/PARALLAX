@@ -48,6 +48,17 @@ Format:
   "reversal_conditions": [],
   "caution": ""
 }
+
+INCOMPLETE INTELLIGENCE POLICY:
+
+Some optional intelligence outputs may be null because an agent failed.
+
+If an output is null:
+- Do not invent its findings.
+- Do not claim that analysis was completed.
+- Explicitly acknowledge the missing evidence in the summary or caution.
+- Reduce confidence where the missing evidence materially limits the conclusion.
+- Base recommendations only on the available evidence. 
 """
 
 
