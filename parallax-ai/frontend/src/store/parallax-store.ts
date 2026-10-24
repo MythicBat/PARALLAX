@@ -1,3 +1,4 @@
+
 import { create } from "zustand";
 
 import type {
@@ -13,7 +14,11 @@ import type {
 
 import type { ObservatoryPayload } from "@/types/observability";
 
-export type WorkspacePanel = 
+// ============================================================
+// WORKSPACE TYPES
+// ============================================================
+
+export type WorkspacePanel =
   | "canvas"
   | "assumptions"
   | "blind-spots"
@@ -22,13 +27,22 @@ export type WorkspacePanel =
   | "information"
   | "jury";
 
+// ============================================================
+// FAULT-TOLERANCE TYPES
+// ============================================================
+
 export interface FailedAgent {
   agent: string;
   error_type: string;
 }
 
+// ============================================================
+// SIMULATION RESPONSE
+// ============================================================
+
 export interface SimulationResponse {
   status: "complete" | "partial";
+
   pipeline: string[];
   team: string[];
 
@@ -38,14 +52,16 @@ export interface SimulationResponse {
   red_team: unknown;
   jury: JuryPayload;
 
+  // Optional intelligence agents can fail independently.
   futures: FutureSimulationPayload | null;
   assumption_ledger: AssumptionLedgerPayload | null;
   blind_spots: BlindSpotPayload | null;
   stress_test: StressTestPayload | null;
   information_value: InformationValuePayload | null;
+  counterfactual: CounterfactualPayload | null;
 
   final: unknown;
-  counterfactual: CounterfactualPayload | null;
+
   observatory: ObservatoryPayload;
 
   // Fault-tolerance metadata
@@ -53,19 +69,29 @@ export interface SimulationResponse {
   incomplete_intelligence?: boolean;
 }
 
+// ============================================================
+// ZUSTAND STATE INTERFACE
+// ============================================================
 
 interface ParallaxState {
+  // Simulation state
   simulation: SimulationResponse | null;
 
   simulationRunning: boolean;
   simulationError: string | null;
 
+  // Future Canvas selection
   selectedFuture: FutureScenario | null;
 
+  // Active intelligence workspace
   activeWorkspacePanel: WorkspacePanel;
 
-  setActiveWorkspacePanel: (panel: WorkspacePanel) => void; 
+  // Workspace actions
+  setActiveWorkspacePanel: (
+    panel: WorkspacePanel,
+  ) => void;
 
+  // Simulation actions
   setSimulation: (
     simulation: SimulationResponse | null,
   ) => void;
@@ -78,14 +104,22 @@ interface ParallaxState {
     error: string | null,
   ) => void;
 
+  // Future selection actions
   setSelectedFuture: (
     future: FutureScenario | null,
   ) => void;
 }
 
+// ============================================================
+// PARALLAX GLOBAL STORE
+// ============================================================
 
-export const useParallaxStore =
-  create<ParallaxState>((set) => ({
+export const useParallaxStore = create<ParallaxState>(
+  (set) => ({
+    // --------------------------------------------------------
+    // INITIAL STATE
+    // --------------------------------------------------------
+
     simulation: null,
 
     simulationRunning: false,
@@ -96,31 +130,62 @@ export const useParallaxStore =
 
     activeWorkspacePanel: "canvas",
 
-    setActiveWorkspacePanel: (activeWorkspacePanel) => set({activeWorkspacePanel}),
+    // --------------------------------------------------------
+    // WORKSPACE NAVIGATION
+    // --------------------------------------------------------
+
+    setActiveWorkspacePanel: (activeWorkspacePanel) =>
+      set((state) =>
+        state.activeWorkspacePanel === activeWorkspacePanel
+          ? state
+          : { activeWorkspacePanel },
+      ),
+
+    // --------------------------------------------------------
+    // SIMULATION MANAGEMENT
+    // --------------------------------------------------------
 
     setSimulation: (simulation) =>
-      set({
-        simulation,
-      }),
+      set((state) =>
+        state.simulation === simulation
+          ? state
+          : {
+              simulation,
+              selectedFuture: null,
+            },
+      ),
 
-    setSimulationRunning: (
-      simulationRunning,
-    ) =>
-      set({
-        simulationRunning,
-      }),
+    // --------------------------------------------------------
+    // SIMULATION LOADING STATE
+    // --------------------------------------------------------
 
-    setSimulationError: (
-      simulationError,
-    ) =>
-      set({
-        simulationError,
-      }),
+    setSimulationRunning: (simulationRunning) =>
+      set((state) =>
+        state.simulationRunning === simulationRunning
+          ? state
+          : { simulationRunning },
+      ),
 
-    setSelectedFuture: (
-      selectedFuture,
-    ) =>
-      set({
-        selectedFuture,
-      }),
-  }));
+    // --------------------------------------------------------
+    // SIMULATION ERROR STATE
+    // --------------------------------------------------------
+
+    setSimulationError: (simulationError) =>
+      set((state) =>
+        state.simulationError === simulationError
+          ? state
+          : { simulationError },
+      ),
+
+    // --------------------------------------------------------
+    // FUTURE SELECTION
+    // --------------------------------------------------------
+
+    setSelectedFuture: (selectedFuture) =>
+      set((state) =>
+        state.selectedFuture === selectedFuture
+          ? state
+          : { selectedFuture },
+      ),
+  }),
+);
