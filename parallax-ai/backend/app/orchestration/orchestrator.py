@@ -40,6 +40,8 @@ from app.simulation.stress_engine import (
     stress_engine,
 )
 
+from app.orchestration.safe_execution import run_optional_agent
+
 
 class ParallaxOrchestrator:
 
@@ -146,11 +148,11 @@ class ParallaxOrchestrator:
 
         (
             jury_results,
-            futures,
-            assumption_ledger,
-            blind_spots,
-            stress_test,
-            information_value,
+            futures_outcome,
+            assumption_outcome,
+            blind_spots_outcome,
+            stress_outcome,
+            information_outcome,
         ) = await asyncio.gather(
 
             convene_jury(
@@ -158,26 +160,56 @@ class ParallaxOrchestrator:
                 juror_count=5,
             ),
 
-            future_engine.generate(
-                reasoning_context
+            run_optional_agent(
+                "future_simulation",
+                future_engine.generate(reasoning_context)
             ),
 
-            assumption_engine.build(
-                reasoning_context
+            run_optional_agent(
+                "assumption_ledger",
+                assumption_engine.build(reasoning_context),
             ),
 
-            blind_spot_engine.analyze(
-                reasoning_context
+            run_optional_agent(
+                "blind_spot_detection",
+                blind_spot_engine.analyze(reasoning_context),
             ),
 
-            stress_engine.run(
-                reasoning_context
+            run_optional_agent(
+                "stress_testing",
+                stress_engine.run(reasoning_context)
             ),
 
-            information_value_engine.analyze(
-                reasoning_context
-            ),
+            run_optional_agent(
+                "information_value",
+                information_value_engine.analyze(reasoning_context)
+            )
         )
+
+        optional_outcomes = {
+            "futures": futures_outcome,
+            "assumption_ledger": assumption_outcome,
+            "blind_spots": blind_spots_outcome,
+            "stress_test": stress_outcome,
+            "information_value": information_outcome,
+        }
+
+        failed_agents = [
+            {
+                "agent": outcome["agent"],
+                "error_type": outcome["error"]["type"],
+            }
+            for outcome in optional_outcomes.values()
+            if outcome["status"] == "failed"
+        ]
+
+        # Preserve the existing top-level response keys.
+        # A failed optional agent has no fabricated result.
+        futures = futures_outcome["result"]
+        assumption_ledger = assumption_outcome["result"]
+        blind_spots = blind_spots_outcome["result"]
+        stress_test = stress_outcome["result"]
+        information_value = information_outcome["result"]
 
         #
         # STAGE 6
@@ -210,27 +242,41 @@ class ParallaxOrchestrator:
             synthesis_context
         )
 
+        if failed_agents:
+            final["incomplete_intelligence"] = True
+            final["unavailable_agents"] = [
+                item["agent"] for item in failed_agents
+            ]
+
         #
         # STAGE 7
         # Counterfactual analysis
         #
 
-        counterfactual = (
-            await counterfactual_engine.analyze(
+        counterfactual_outcome = await run_optional_agent(
+            "counterfactual_analysis",
+            counterfactual_engine.analyze(
                 {
                     **synthesis_context,
-                    "final":
-                        final,
+                    "final": final,
                 }
-            )
+            ),
         )
+
+        counterfactual = counterfactual_outcome["result"]
+
+        if counterfactual_outcome["status"] == "failed":
+            failed_agents.append({
+                "agent": "counterfactual_analysis",
+                "error_type": counterfactual_outcome["error"]["type"]
+            })
 
         #
         # FINAL EXECUTION RECORD
         #
 
         return {
-            "status": "complete",
+            "status": "partial" if failed_agents else "complete",
 
             "pipeline": [
                 "decision_architect",
@@ -285,6 +331,9 @@ class ParallaxOrchestrator:
 
             "counterfactual":
                 counterfactual,
+
+            "failed_agents": failed_agents,
+            "incomplete_intelligence": bool(failed_agents)
         }
 
 
