@@ -223,9 +223,6 @@ export function FutureCanvas() {
         defaultEdgeOptions={{
           type: "default",
         }}
-        proOptions={{
-          hideAttribution: true,
-        }}
       >
         <Background
           variant={
