@@ -74,8 +74,10 @@ export function FutureCanvas() {
       ?.core_question ??
     "Current decision";
 
+  const futurePayload = simulation?.futures;
+
   const graph = useMemo(() => {
-    if (!simulation?.futures) {
+    if (!futurePayload) {
       return {
         nodes: [],
         edges: [],
@@ -84,10 +86,10 @@ export function FutureCanvas() {
 
     return buildFutureGraph(
       question,
-      simulation.futures,
+      futurePayload,
     );
   }, [
-    simulation,
+    futurePayload,
     question,
   ]);
 
@@ -112,6 +114,8 @@ export function FutureCanvas() {
     setEdges,
   ]);
 
+  const selectedFutureId = selectedFuture?.id ?? null;
+
   useEffect(() => {
     setNodes((currentNodes) =>
       currentNodes.map((node) => {
@@ -124,21 +128,26 @@ export function FutureCanvas() {
         const data =
           node.data as {
             future: FutureScenario;
+            selected?: boolean;
           };
+
+        const isSelected = selectedFutureId === data.future.id;
+
+        if (data.selected === isSelected) {
+          return node;
+        }
 
         return {
           ...node,
           data: {
             ...node.data,
-            selected:
-              selectedFuture?.id ===
-              data.future.id,
+            selected: isSelected,
           },
         };
       }),
     );
   }, [
-    selectedFuture,
+    selectedFutureId,
     setNodes,
   ]);
 
