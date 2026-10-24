@@ -22,8 +22,13 @@ export type WorkspacePanel =
   | "information"
   | "jury";
 
+export interface FailedAgent {
+  agent: string;
+  error_type: string;
+}
+
 export interface SimulationResponse {
-  status: string;
+  status: "complete" | "partial";
   pipeline: string[];
   team: string[];
 
@@ -33,15 +38,19 @@ export interface SimulationResponse {
   red_team: unknown;
   jury: JuryPayload;
 
-  futures: FutureSimulationPayload;
+  futures: FutureSimulationPayload | null;
+  assumption_ledger: AssumptionLedgerPayload | null;
+  blind_spots: BlindSpotPayload | null;
+  stress_test: StressTestPayload | null;
+  information_value: InformationValuePayload | null;
 
-  assumption_ledger: AssumptionLedgerPayload;
-  blind_spots: BlindSpotPayload;
-  stress_test: StressTestPayload;
-  information_value: InformationValuePayload;
   final: unknown;
-  counterfactual: CounterfactualPayload;
+  counterfactual: CounterfactualPayload | null;
   observatory: ObservatoryPayload;
+
+  // Fault-tolerance metadata
+  failed_agents?: FailedAgent[];
+  incomplete_intelligence?: boolean;
 }
 
 
