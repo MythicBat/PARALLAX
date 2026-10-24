@@ -22,6 +22,7 @@ import type {
   StressImpact,
   StressScenario,
 } from "@/types/simulation";
+import { IntelligenceUnavailable } from "./IntelligenceUnavailable";
 
 
 export function StressLab() {
@@ -68,14 +69,13 @@ export function StressLab() {
     ]);
 
   if (
-    !simulation ||
-    !stressTest
+    !simulation
   ) {
     return null;
   }
 
   const impacts =
-    selectedScenario
+    selectedScenario && stressTest
       ? stressTest.impacts.filter(
           (impact) =>
             impact.scenario_id ===
@@ -224,7 +224,7 @@ export function StressLab() {
             />
           )}
 
-          {stressTest.most_resilient_option && (
+          {stressTest?.most_resilient_option && (
             <div className="rounded-[18px] border border-[var(--accent)]/15 bg-[var(--accent)]/[0.04] px-5 py-4">
               <div className="text-[8px] uppercase tracking-[0.14em] text-[var(--accent)]/50">
                 Most resilient
@@ -239,13 +239,14 @@ export function StressLab() {
           )}
         </div>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-[280px_1fr]">
+        {stressTest ? (
+          <div className="mt-10 grid gap-6 lg:grid-cols-[280px_1fr]">
           <aside className="space-y-2">
             <div className="mb-4 text-[9px] uppercase tracking-[0.15em] text-white/20">
               Stress scenarios
             </div>
 
-            {stressTest.scenarios.map(
+            {stressTest?.scenarios.map(
               (scenario) => {
                 const selected =
                   selectedScenario?.id ===
@@ -346,14 +347,19 @@ export function StressLab() {
 
                   <p className="mt-3 text-[10px] leading-6 text-white/35">
                     {
-                      stressTest.explanation
+                      stressTest?.explanation
                     }
                   </p>
                 </div>
               </>
             )}
           </main>
-        </div>
+        </div>) : (
+          <IntelligenceUnavailable
+            title="Automated Stress Analysis unavailable"
+            description="The automatic stress analysis could not complete. You can still enter and run a custom scenario above."
+          />
+        )}
       </div>
     </div>
   );
